@@ -72,6 +72,7 @@ function CharCard({
   return (
     <div
       data-testid={`sidemenu-char-${char.id}`}
+      {...(isCurrent ? { "aria-current": "true" } : {})}
       className={`p-2 rounded mb-2 text-sm ${
         isCurrent
           ? "border border-yellow-400 bg-gray-750"
@@ -81,7 +82,9 @@ function CharCard({
       <div className="flex items-center justify-between mb-1">
         <span className="font-semibold truncate">{char.name}</span>
         {isCurrent && (
-          <span className="text-xs text-yellow-400 ml-1">▶</span>
+          <span aria-hidden="true" className="text-xs text-yellow-400 ml-1">
+            ▶
+          </span>
         )}
       </div>
       <div className="space-y-1">

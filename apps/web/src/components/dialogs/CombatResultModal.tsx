@@ -62,7 +62,10 @@ export default function CombatResultModal({ onBackToLobby }: Props) {
             : "bg-gray-900 border-red-600"
         }`}
       >
-        <div className={`text-5xl mb-4 ${isVictory ? "text-yellow-400" : "text-red-500"}`}>
+        <div
+          aria-hidden="true"
+          className={`text-5xl mb-4 ${isVictory ? "text-yellow-400" : "text-red-500"}`}
+        >
           {isVictory ? "⚔" : "💀"}
         </div>
         <h2

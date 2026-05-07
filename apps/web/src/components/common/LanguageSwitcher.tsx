@@ -10,6 +10,13 @@ const LABELS: Record<SupportedLanguage, string> = {
   en: "English",
 };
 
+// Spec §17: tag each option with its own `lang` so screen readers switch
+// pronunciation rules when reading "日本語" vs "English".
+const OPTION_LANG: Record<SupportedLanguage, string> = {
+  ja: "ja",
+  en: "en",
+};
+
 type Props = {
   className?: string;
 };
@@ -39,7 +46,7 @@ export default function LanguageSwitcher({ className }: Props) {
         }}
       >
         {SUPPORTED_LANGUAGES.map((lang) => (
-          <option key={lang} value={lang}>
+          <option key={lang} value={lang} lang={OPTION_LANG[lang]}>
             {LABELS[lang]}
           </option>
         ))}

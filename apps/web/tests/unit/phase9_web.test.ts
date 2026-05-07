@@ -52,6 +52,7 @@ import ActionDetailModal from "../../src/components/action/ActionDetailModal";
 import CastArtModal from "../../src/components/dialogs/CastArtModal";
 import CastArtCutscene from "../../src/components/dialogs/CastArtCutscene";
 import ToastContainer from "../../src/components/common/ToastContainer";
+import LanguageSwitcher from "../../src/components/common/LanguageSwitcher";
 
 // react-konva relies on the canvas API which jsdom does not implement.
 // Mock it with light DOM shims so GameMap can render the §17 a11y surface.
@@ -335,6 +336,44 @@ describe("Phase 9 web: AudioSettings component", () => {
       screen.getByTestId("audio-settings").getAttribute("aria-label"),
     ).toBe(en["settings.audio.groupLabel"]);
     await i18n.changeLanguage("ja");
+  });
+});
+
+describe("Phase 9 web: LanguageSwitcher (§17 a11y)", () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+  });
+
+  it("tags each option with its own lang attribute", () => {
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(LanguageSwitcher),
+      ),
+    );
+    const select = screen
+      .getByTestId("language-switcher")
+      .querySelector("select") as HTMLSelectElement;
+    const options = Array.from(select.options);
+    const ja_opt = options.find((o) => o.value === "ja");
+    const en_opt = options.find((o) => o.value === "en");
+    expect(ja_opt?.getAttribute("lang")).toBe("ja");
+    expect(en_opt?.getAttribute("lang")).toBe("en");
+  });
+
+  it("keeps an accessible name on the select control", () => {
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(LanguageSwitcher),
+      ),
+    );
+    const select = screen
+      .getByTestId("language-switcher")
+      .querySelector("select") as HTMLSelectElement;
+    expect(select.getAttribute("aria-label")).toBe(ja["settings.language"]);
   });
 });
 

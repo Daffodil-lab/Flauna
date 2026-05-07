@@ -51,7 +51,9 @@ export default function SessionLostScreen({ onBackToLobby }: Props) {
       onKeyDown={handleKeyDown}
     >
       <div className="rounded-xl p-8 w-96 text-center shadow-2xl border-2 bg-gray-900 border-red-700">
-        <div className="text-5xl mb-4 text-red-500">⚠</div>
+        <div aria-hidden="true" className="text-5xl mb-4 text-red-500">
+          ⚠
+        </div>
         <h2
           id="session-lost-title"
           className="text-2xl font-bold mb-2 text-red-400"

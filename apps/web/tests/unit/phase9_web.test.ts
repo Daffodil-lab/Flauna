@@ -163,6 +163,11 @@ describe("Phase 9 web: i18n keys", () => {
     expect(en).toHaveProperty("room.deathAvoidance.expired");
   });
 
+  it("ja and en expose the §17 Room <main> landmark label", () => {
+    expect(ja).toHaveProperty("room.main.label");
+    expect(en).toHaveProperty("room.main.label");
+  });
+
   it("ja and en still have identical key sets after Phase 9", () => {
     expect(Object.keys(en).sort()).toEqual(Object.keys(ja).sort());
   });

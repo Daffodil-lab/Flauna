@@ -119,6 +119,7 @@ const en = {
   "room.map.openCharActions": "Open action menu for {{name}}",
   "room.map.damageRegion": "Damage log",
   "room.map.damageItem": "{{name}} took {{amount}} damage",
+  "room.main.label": "Play area",
   "combat.victory": "Victory!",
   "combat.defeat": "Defeat...",
   "combat.victoryMsg": "All enemies defeated. Mission complete.",

@@ -626,11 +626,17 @@ export default function Room() {
       <div className="flex flex-1 overflow-hidden">
         <SideMenu />
 
-        <div className="relative flex flex-col flex-1 overflow-hidden">
+        {/* Spec §17: the central play surface is the page's <main> landmark
+            so SR users can jump straight to it past the banner/aside chrome. */}
+        <main
+          aria-label={t("room.main.label")}
+          data-testid="room-main"
+          className="relative flex flex-col flex-1 overflow-hidden"
+        >
           <AiThinkingIndicator />
           <GameMap onCharRightClick={handleCharRightClick} />
           <QuickActionBar onEndTurn={handleEndTurn} />
-        </div>
+        </main>
 
         <ChatPanel onSendStatement={handleSendStatement} />
       </div>

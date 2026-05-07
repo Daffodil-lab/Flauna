@@ -133,15 +133,21 @@ export default function EvasionDialog({ onSubmit }: Props) {
         </div>
 
         <div className="mb-4">
-          <label className="text-sm text-gray-400">
+          <label htmlFor="evasion-use-dice" className="text-sm text-gray-400">
             {t("room.evasion.useDice")}: {usedDice}
           </label>
           <input
+            id="evasion-use-dice"
             type="range"
             min={0}
             max={maxDice}
             value={usedDice}
             onChange={(e) => setUsedDice(Number(e.target.value))}
+            aria-label={t("room.evasion.useDice")}
+            aria-valuetext={t("room.evasion.useDiceValue", {
+              used: usedDice,
+              max: maxDice,
+            })}
             className="w-full mt-1"
           />
         </div>

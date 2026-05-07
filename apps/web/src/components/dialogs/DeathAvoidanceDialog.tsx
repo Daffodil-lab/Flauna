@@ -142,7 +142,12 @@ export default function DeathAvoidanceDialog({ onSubmit }: Props) {
           </div>
         </div>
 
-        <div className="space-y-2 mb-5">
+        <div
+          className="space-y-2 mb-5"
+          role="radiogroup"
+          aria-label={t("room.deathAvoidance.choicesGroupLabel")}
+          data-testid="death-avoidance-choices"
+        >
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="radio"

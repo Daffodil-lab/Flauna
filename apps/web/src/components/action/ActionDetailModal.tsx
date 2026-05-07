@@ -112,8 +112,18 @@ export default function ActionDetailModal({ onSubmit }: Props) {
 
         {/* Move mode */}
         <div className="mb-3">
-          <label className="text-xs text-gray-400 block mb-1">{t("room.action.moveMode")}</label>
-          <div className="space-y-1">
+          <div
+            id="action-move-mode-label"
+            className="text-xs text-gray-400 block mb-1"
+          >
+            {t("room.action.moveMode")}
+          </div>
+          <div
+            className="space-y-1"
+            role="radiogroup"
+            aria-labelledby="action-move-mode-label"
+            data-testid="action-move-mode-group"
+          >
             {MOVE_MODES.map((m) => (
               <label key={m} className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -132,8 +142,18 @@ export default function ActionDetailModal({ onSubmit }: Props) {
 
         {/* Style */}
         <div className="mb-3">
-          <label className="text-xs text-gray-400 block mb-1">{t("room.action.style")}</label>
-          <div className="grid grid-cols-2 gap-1">
+          <div
+            id="action-style-label"
+            className="text-xs text-gray-400 block mb-1"
+          >
+            {t("room.action.style")}
+          </div>
+          <div
+            className="grid grid-cols-2 gap-1"
+            role="radiogroup"
+            aria-labelledby="action-style-label"
+            data-testid="action-style-group"
+          >
             {MELEE_STYLES.map((s) => (
               <label key={s} className="flex items-center gap-2 cursor-pointer">
                 <input

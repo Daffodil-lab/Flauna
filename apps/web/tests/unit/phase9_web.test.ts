@@ -3271,6 +3271,43 @@ describe("Phase 9 web: ActionDetailModal keyboard + a11y (§17)", () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(useUIStore.getState().activeModal).toBeNull();
   });
+
+  it("groups the moveMode radios as a labelled radiogroup", () => {
+    renderModal();
+    const group = screen.getByTestId("action-move-mode-group");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    const labelId = group.getAttribute("aria-labelledby");
+    expect(labelId).not.toBeNull();
+    expect(document.getElementById(labelId!)?.textContent).toBe(
+      ja["room.action.moveMode"],
+    );
+    expect(group.querySelectorAll('input[type="radio"]').length).toBe(3);
+  });
+
+  it("groups the style radios as a labelled radiogroup", () => {
+    renderModal();
+    const group = screen.getByTestId("action-style-group");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    const labelId = group.getAttribute("aria-labelledby");
+    expect(labelId).not.toBeNull();
+    expect(document.getElementById(labelId!)?.textContent).toBe(
+      ja["room.action.style"],
+    );
+    expect(group.querySelectorAll('input[type="radio"]').length).toBe(5);
+  });
+
+  it("uses the localized radiogroup labels in en", async () => {
+    await i18n.changeLanguage("en");
+    try {
+      renderModal();
+      const moveLabel = document.getElementById("action-move-mode-label");
+      const styleLabel = document.getElementById("action-style-label");
+      expect(moveLabel?.textContent).toBe(en["room.action.moveMode"]);
+      expect(styleLabel?.textContent).toBe(en["room.action.style"]);
+    } finally {
+      await i18n.changeLanguage("ja");
+    }
+  });
 });
 
 describe("Phase 9 web: CastArtModal keyboard + a11y (§17)", () => {
@@ -4491,5 +4528,230 @@ describe("Phase 9 web: GameMap a11y region (§17)", () => {
     await act(async () => {
       await i18n.changeLanguage("ja");
     });
+  });
+});
+
+describe("Phase 9 web: EvasionDialog dice slider a11y (§17)", () => {
+  function makeChar(id: string, playerId: string | null): Character {
+    return {
+      id,
+      name: id,
+      player_id: playerId,
+      faction: "pc",
+      is_boss: false,
+      tai: 0,
+      rei: 0,
+      kou: 0,
+      jutsu: 0,
+      max_hp: 10,
+      max_mp: 10,
+      hp: 10,
+      mp: 10,
+      mobility: 4,
+      evasion_dice: 4,
+      max_evasion_dice: 4,
+      position: [0, 0],
+      equipped_weapons: [],
+      equipped_jacket: null,
+      armor_value: 0,
+      inventory: {},
+      skills: [],
+      arts: [],
+      status_effects: [],
+      has_acted_this_turn: false,
+      movement_used_this_turn: 0,
+      first_move_mode: null,
+    };
+  }
+
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+    useGameStore.setState({
+      gameState: {
+        characters: [makeChar("me", "p1"), makeChar("foe", null)],
+      },
+      myPlayerId: "p1",
+    } as never);
+    usePendingStore.getState().setEvasionRequest({
+      pending_id: "p",
+      attacker_id: "foe",
+      target_id: "me",
+      deadline_seconds: 30,
+    });
+  });
+
+  afterEach(() => {
+    usePendingStore.getState().setEvasionRequest(null);
+    useGameStore.setState({ gameState: null, myPlayerId: null } as never);
+  });
+
+  function renderDialog() {
+    return render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(EvasionDialog, { onSubmit: vi.fn() }),
+      ),
+    );
+  }
+
+  it("ja and en expose the §17 useDiceValue key", () => {
+    expect(ja).toHaveProperty("room.evasion.useDiceValue");
+    expect(en).toHaveProperty("room.evasion.useDiceValue");
+  });
+
+  it("labels the dice slider and exposes a localized aria-valuetext", () => {
+    renderDialog();
+    const slider = document
+      .querySelector('[data-testid="evasion-dialog"]')!
+      .querySelector('input[type="range"]') as HTMLInputElement;
+    expect(slider.getAttribute("aria-label")).toBe(ja["room.evasion.useDice"]);
+    expect(slider.getAttribute("aria-valuetext")).toBe(
+      ja["room.evasion.useDiceValue"]
+        .replace("{{used}}", "0")
+        .replace("{{max}}", "4"),
+    );
+  });
+
+  it("updates aria-valuetext as the slider value changes", () => {
+    renderDialog();
+    const slider = document
+      .querySelector('[data-testid="evasion-dialog"]')!
+      .querySelector('input[type="range"]') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: "3" } });
+    expect(slider.getAttribute("aria-valuetext")).toBe(
+      ja["room.evasion.useDiceValue"]
+        .replace("{{used}}", "3")
+        .replace("{{max}}", "4"),
+    );
+  });
+
+  it("uses the localized aria-label and aria-valuetext in en", async () => {
+    await i18n.changeLanguage("en");
+    try {
+      renderDialog();
+      const slider = document
+        .querySelector('[data-testid="evasion-dialog"]')!
+        .querySelector('input[type="range"]') as HTMLInputElement;
+      expect(slider.getAttribute("aria-label")).toBe(
+        en["room.evasion.useDice"],
+      );
+      expect(slider.getAttribute("aria-valuetext")).toBe(
+        en["room.evasion.useDiceValue"]
+          .replace("{{used}}", "0")
+          .replace("{{max}}", "4"),
+      );
+    } finally {
+      await i18n.changeLanguage("ja");
+    }
+  });
+
+  it("associates the visible label with the slider via htmlFor/id", () => {
+    renderDialog();
+    const dialog = document.querySelector(
+      '[data-testid="evasion-dialog"]',
+    ) as HTMLElement;
+    const label = dialog.querySelector("label[for]") as HTMLLabelElement;
+    expect(label).not.toBeNull();
+    const slider = dialog.querySelector(
+      'input[type="range"]',
+    ) as HTMLInputElement;
+    expect(label.getAttribute("for")).toBe(slider.id);
+  });
+});
+
+describe("Phase 9 web: DeathAvoidanceDialog choices radiogroup (§17)", () => {
+  function makeChar(): Character {
+    return {
+      id: "me",
+      name: "me",
+      player_id: "p1",
+      faction: "pc",
+      is_boss: false,
+      tai: 0,
+      rei: 0,
+      kou: 0,
+      jutsu: 0,
+      max_hp: 10,
+      max_mp: 10,
+      hp: 1,
+      mp: 10,
+      mobility: 4,
+      evasion_dice: 3,
+      max_evasion_dice: 3,
+      position: [0, 0],
+      equipped_weapons: [],
+      equipped_jacket: null,
+      armor_value: 0,
+      inventory: { katashiro: 5 },
+      skills: [],
+      arts: [],
+      status_effects: [],
+      has_acted_this_turn: false,
+      movement_used_this_turn: 0,
+      first_move_mode: null,
+    };
+  }
+
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+    useGameStore.setState({
+      gameState: { characters: [makeChar()] },
+      myPlayerId: "p1",
+    } as never);
+    usePendingStore.getState().setDeathAvoidanceRequest({
+      pending_id: "p",
+      target_character_id: "me",
+      target_player_id: "p1",
+      incoming_damage: 12,
+      damage_type: "physical",
+      katashiro_required: 2,
+      katashiro_remaining: 5,
+      deadline_seconds: 30,
+    });
+  });
+
+  afterEach(() => {
+    usePendingStore.getState().setDeathAvoidanceRequest(null);
+    useGameStore.setState({ gameState: null, myPlayerId: null } as never);
+  });
+
+  function renderDialog() {
+    return render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(DeathAvoidanceDialog, { onSubmit: vi.fn() }),
+      ),
+    );
+  }
+
+  it("ja and en expose the §17 choicesGroupLabel key", () => {
+    expect(ja).toHaveProperty("room.deathAvoidance.choicesGroupLabel");
+    expect(en).toHaveProperty("room.deathAvoidance.choicesGroupLabel");
+  });
+
+  it("wraps the three radios in a labelled radiogroup", () => {
+    renderDialog();
+    const group = screen.getByTestId("death-avoidance-choices");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    expect(group.getAttribute("aria-label")).toBe(
+      ja["room.deathAvoidance.choicesGroupLabel"],
+    );
+    const radios = group.querySelectorAll('input[type="radio"]');
+    expect(radios.length).toBe(3);
+  });
+
+  it("uses the localized radiogroup label in en", async () => {
+    await i18n.changeLanguage("en");
+    try {
+      renderDialog();
+      const group = screen.getByTestId("death-avoidance-choices");
+      expect(group.getAttribute("aria-label")).toBe(
+        en["room.deathAvoidance.choicesGroupLabel"],
+      );
+    } finally {
+      await i18n.changeLanguage("ja");
+    }
   });
 });

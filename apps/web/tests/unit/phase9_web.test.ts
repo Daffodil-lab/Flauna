@@ -52,6 +52,7 @@ import ActionDetailModal from "../../src/components/action/ActionDetailModal";
 import CastArtModal from "../../src/components/dialogs/CastArtModal";
 import CastArtCutscene from "../../src/components/dialogs/CastArtCutscene";
 import ToastContainer from "../../src/components/common/ToastContainer";
+import LanguageSwitcher from "../../src/components/common/LanguageSwitcher";
 
 // react-konva relies on the canvas API which jsdom does not implement.
 // Mock it with light DOM shims so GameMap can render the §17 a11y surface.
@@ -306,6 +307,73 @@ describe("Phase 9 web: AudioSettings component", () => {
       "audio-volume-slider",
     ) as HTMLInputElement;
     expect(slider.disabled).toBe(true);
+  });
+
+  // Spec §17: settings should expose grouped controls with labelled landmarks
+  // and a spoken volume value so SR users hear "音量 60%" instead of just "60".
+  it("wraps the controls in a labelled group landmark", () => {
+    render(React.createElement(AudioSettings));
+    const root = screen.getByTestId("audio-settings");
+    expect(root.getAttribute("role")).toBe("group");
+    expect(root.getAttribute("aria-label")).toBe(
+      ja["settings.audio.groupLabel"],
+    );
+  });
+
+  it("exposes a localized aria-valuetext on the volume slider", async () => {
+    useAudioStore.setState({ muted: false, volume: 0.42 });
+    render(React.createElement(AudioSettings));
+    const slider = screen.getByTestId(
+      "audio-volume-slider",
+    ) as HTMLInputElement;
+    expect(slider.getAttribute("aria-valuetext")).toBe("音量 42%");
+  });
+
+  it("keeps the mute button accessible name in English", async () => {
+    await i18n.changeLanguage("en");
+    render(React.createElement(AudioSettings));
+    expect(
+      screen.getByTestId("audio-settings").getAttribute("aria-label"),
+    ).toBe(en["settings.audio.groupLabel"]);
+    await i18n.changeLanguage("ja");
+  });
+});
+
+describe("Phase 9 web: LanguageSwitcher (§17 a11y)", () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+  });
+
+  it("tags each option with its own lang attribute", () => {
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(LanguageSwitcher),
+      ),
+    );
+    const select = screen
+      .getByTestId("language-switcher")
+      .querySelector("select") as HTMLSelectElement;
+    const options = Array.from(select.options);
+    const ja_opt = options.find((o) => o.value === "ja");
+    const en_opt = options.find((o) => o.value === "en");
+    expect(ja_opt?.getAttribute("lang")).toBe("ja");
+    expect(en_opt?.getAttribute("lang")).toBe("en");
+  });
+
+  it("keeps an accessible name on the select control", () => {
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(LanguageSwitcher),
+      ),
+    );
+    const select = screen
+      .getByTestId("language-switcher")
+      .querySelector("select") as HTMLSelectElement;
+    expect(select.getAttribute("aria-label")).toBe(ja["settings.language"]);
   });
 });
 
@@ -1488,6 +1556,29 @@ describe("Phase 9 web: AiThinkingIndicator (§9-2)", () => {
     expect(screen.getByTestId("ai-thinking-indicator").textContent).toContain(
       "custom_stage",
     );
+  });
+
+  // Spec §17: SR users should hear a single combined polite announcement
+  // (label + stage + actor) rather than four disconnected nodes.
+  it("announces as a polite atomic live region with a combined aria-label", () => {
+    useGameStore.setState({
+      gameState: {
+        characters: [
+          { id: "enemy1", name: "鬼A", player_id: null } as unknown as Character,
+        ],
+      },
+    } as never);
+    useUIStore.getState().setAiThinking("deciding_action", "enemy1");
+    renderIndicator();
+    const banner = screen.getByTestId("ai-thinking-indicator");
+    expect(banner.getAttribute("role")).toBe("status");
+    expect(banner.getAttribute("aria-live")).toBe("polite");
+    expect(banner.getAttribute("aria-atomic")).toBe("true");
+    expect(banner.getAttribute("aria-busy")).toBe("true");
+    const label = banner.getAttribute("aria-label") ?? "";
+    expect(label).toContain(ja["room.ai.thinking"]);
+    expect(label).toContain(ja["room.ai.stage.deciding_action"]);
+    expect(label).toContain("鬼A");
   });
 });
 

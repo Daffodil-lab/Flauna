@@ -34,9 +34,20 @@ export default function AiThinkingIndicator() {
   const stageKey = STAGE_LABEL_KEY[aiThinking.stage];
   const stageLabel = stageKey ? t(stageKey) : aiThinking.stage;
 
+  // Spec §17: announce as a polite live region so SR users hear the wait
+  // intention without being yanked away from focus. aria-busy mirrors the
+  // loading state; the visible glyph is decorative (aria-hidden).
+  const srText = [t("room.ai.thinking"), stageLabel, actorName]
+    .filter(Boolean)
+    .join(" / ");
+
   return (
     <div
       role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-busy="true"
+      aria-label={srText}
       data-testid="ai-thinking-indicator"
       className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-20
         flex items-center gap-2 rounded-full border border-indigo-500/60
@@ -46,15 +57,24 @@ export default function AiThinkingIndicator() {
         className="inline-block h-2 w-2 rounded-full bg-indigo-300 animate-pulse"
         aria-hidden
       />
-      <span className="font-medium">{t("room.ai.thinking")}</span>
-      <span className="text-indigo-300/80">·</span>
-      <span className="text-indigo-200/90">{stageLabel}</span>
+      <span className="font-medium" aria-hidden>
+        {t("room.ai.thinking")}
+      </span>
+      <span className="text-indigo-300/80" aria-hidden>
+        ·
+      </span>
+      <span className="text-indigo-200/90" aria-hidden>
+        {stageLabel}
+      </span>
       {actorName && (
         <>
-          <span className="text-indigo-300/80">·</span>
+          <span className="text-indigo-300/80" aria-hidden>
+            ·
+          </span>
           <span
             data-testid="ai-thinking-actor"
             className="text-indigo-200/90"
+            aria-hidden
           >
             {actorName}
           </span>

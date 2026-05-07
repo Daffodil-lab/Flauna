@@ -3271,6 +3271,43 @@ describe("Phase 9 web: ActionDetailModal keyboard + a11y (§17)", () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(useUIStore.getState().activeModal).toBeNull();
   });
+
+  it("groups the moveMode radios as a labelled radiogroup", () => {
+    renderModal();
+    const group = screen.getByTestId("action-move-mode-group");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    const labelId = group.getAttribute("aria-labelledby");
+    expect(labelId).not.toBeNull();
+    expect(document.getElementById(labelId!)?.textContent).toBe(
+      ja["room.action.moveMode"],
+    );
+    expect(group.querySelectorAll('input[type="radio"]').length).toBe(3);
+  });
+
+  it("groups the style radios as a labelled radiogroup", () => {
+    renderModal();
+    const group = screen.getByTestId("action-style-group");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    const labelId = group.getAttribute("aria-labelledby");
+    expect(labelId).not.toBeNull();
+    expect(document.getElementById(labelId!)?.textContent).toBe(
+      ja["room.action.style"],
+    );
+    expect(group.querySelectorAll('input[type="radio"]').length).toBe(5);
+  });
+
+  it("uses the localized radiogroup labels in en", async () => {
+    await i18n.changeLanguage("en");
+    try {
+      renderModal();
+      const moveLabel = document.getElementById("action-move-mode-label");
+      const styleLabel = document.getElementById("action-style-label");
+      expect(moveLabel?.textContent).toBe(en["room.action.moveMode"]);
+      expect(styleLabel?.textContent).toBe(en["room.action.style"]);
+    } finally {
+      await i18n.changeLanguage("ja");
+    }
+  });
 });
 
 describe("Phase 9 web: CastArtModal keyboard + a11y (§17)", () => {
@@ -4665,8 +4702,11 @@ describe("Phase 9 web: DeathAvoidanceDialog choices radiogroup (§17)", () => {
     usePendingStore.getState().setDeathAvoidanceRequest({
       pending_id: "p",
       target_character_id: "me",
+      target_player_id: "p1",
       incoming_damage: 12,
+      damage_type: "physical",
       katashiro_required: 2,
+      katashiro_remaining: 5,
       deadline_seconds: 30,
     });
   });

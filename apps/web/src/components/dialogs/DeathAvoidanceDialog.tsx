@@ -105,7 +105,8 @@ export default function DeathAvoidanceDialog({ onSubmit }: Props) {
           id="death-avoidance-dialog-title"
           className="text-lg font-bold text-red-400 mb-4"
         >
-          💀 {t("room.deathAvoidance.title")}
+          <span aria-hidden="true">💀</span>{" "}
+          {t("room.deathAvoidance.title")}
         </h2>
 
         <div className="space-y-2 mb-4 text-sm">

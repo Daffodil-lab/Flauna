@@ -95,7 +95,8 @@ export default function QuickActionBar({ onEndTurn }: Props) {
           className="bg-purple-700 hover:bg-purple-600 text-white text-sm px-3 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="quickbar-cast-art"
         >
-          {t("room.castArt.button")} ✦
+          {t("room.castArt.button")}{" "}
+          <span aria-hidden="true">✦</span>
         </button>
       )}
       <button

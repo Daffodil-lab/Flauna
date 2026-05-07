@@ -45,7 +45,7 @@ export default function Header() {
             data-testid="toggle-sidemenu"
             className="lg:hidden p-1 rounded hover:bg-gray-700"
           >
-            ☰
+            <span aria-hidden="true">☰</span>
           </button>
         )}
         <span className="font-bold truncate">{t("app.name")}</span>
@@ -126,7 +126,7 @@ export default function Header() {
             data-testid="toggle-chatpanel"
             className="lg:hidden p-1 rounded hover:bg-gray-700"
           >
-            💬
+            <span aria-hidden="true">💬</span>
           </button>
         )}
       </div>

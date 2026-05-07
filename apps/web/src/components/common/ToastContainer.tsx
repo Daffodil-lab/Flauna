@@ -46,7 +46,7 @@ function ToastItem({ toast }: ToastItemProps) {
         aria-label={t("room.notice.dismiss")}
         className="opacity-60 hover:opacity-100"
       >
-        ×
+        <span aria-hidden="true">×</span>
       </button>
     </div>
   );

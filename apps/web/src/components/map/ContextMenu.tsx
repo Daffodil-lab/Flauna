@@ -137,7 +137,8 @@ export default function ContextMenu({
           closeContextMenu();
         }}
       >
-        {t("room.contextMenu.detailAttack")} ⚙
+        {t("room.contextMenu.detailAttack")}{" "}
+        <span aria-hidden="true">⚙</span>
       </button>
       <button
         type="button"
@@ -150,7 +151,8 @@ export default function ContextMenu({
         }}
         data-testid="ctx-cast-art"
       >
-        {t("room.contextMenu.castArt")} ✦
+        {t("room.contextMenu.castArt")}{" "}
+        <span aria-hidden="true">✦</span>
       </button>
       <div className="border-t border-gray-700 my-0.5" role="separator" />
       <button

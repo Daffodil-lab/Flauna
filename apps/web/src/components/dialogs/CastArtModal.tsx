@@ -155,10 +155,14 @@ export default function CastArtModal({ onSubmit }: Props) {
 
         {needsTarget && (
           <div className="mb-3">
-            <label className="text-xs text-gray-400 block mb-1">
+            <label
+              htmlFor="cast-art-target"
+              className="text-xs text-gray-400 block mb-1"
+            >
               {t("room.castArt.pickTarget")}
             </label>
             <select
+              id="cast-art-target"
               value={targetId ?? ""}
               onChange={(e) => setTargetId(e.target.value || null)}
               className="w-full bg-gray-800 rounded px-2 py-1 text-sm border border-gray-600"

@@ -137,27 +137,33 @@ function CharCard({
               data-testid={`sidemenu-status-${char.id}`}
               className="flex flex-wrap justify-end gap-1"
             >
-              {statusEffects.map((effect, idx) => (
-                <span
-                  key={`${effect.name}-${idx}`}
-                  className="px-1.5 py-0.5 rounded bg-purple-900/50 border border-purple-700 text-purple-200"
-                  title={
-                    effect.duration > 0
-                      ? t("room.sideMenu.statusDuration", {
-                          name: effect.name,
-                          n: effect.duration,
-                        })
-                      : effect.name
-                  }
-                >
-                  {effect.name}
-                  {effect.duration > 0 && (
-                    <span className="ml-0.5 text-purple-400">
-                      ×{effect.duration}
-                    </span>
-                  )}
-                </span>
-              ))}
+              {statusEffects.map((effect, idx) => {
+                const label =
+                  effect.duration > 0
+                    ? t("room.sideMenu.statusDuration", {
+                        name: effect.name,
+                        n: effect.duration,
+                      })
+                    : effect.name;
+                return (
+                  <span
+                    key={`${effect.name}-${idx}`}
+                    aria-label={label}
+                    title={label}
+                    className="px-1.5 py-0.5 rounded bg-purple-900/50 border border-purple-700 text-purple-200"
+                  >
+                    {effect.name}
+                    {effect.duration > 0 && (
+                      <span
+                        aria-hidden="true"
+                        className="ml-0.5 text-purple-400"
+                      >
+                        ×{effect.duration}
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
             </span>
           )}
         </div>

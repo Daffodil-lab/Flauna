@@ -12,8 +12,12 @@ export default function AudioSettings({ className }: Props) {
   const toggleMuted = useAudioStore((s) => s.toggleMuted);
   const setVolume = useAudioStore((s) => s.setVolume);
 
+  const volumePct = Math.round(volume * 100);
+
   return (
     <div
+      role="group"
+      aria-label={t("settings.audio.groupLabel")}
       className={
         className ?? "flex items-center gap-1 text-xs text-gray-300"
       }
@@ -27,16 +31,17 @@ export default function AudioSettings({ className }: Props) {
         className="px-1 py-0.5 rounded border border-gray-700 bg-gray-800 hover:bg-gray-700"
         data-testid="audio-mute-toggle"
       >
-        {muted ? "🔇" : "🔊"}
+        <span aria-hidden>{muted ? "🔇" : "🔊"}</span>
       </button>
       <input
         type="range"
         min={0}
         max={100}
         step={1}
-        value={Math.round(volume * 100)}
+        value={volumePct}
         onChange={(e) => setVolume(Number(e.target.value) / 100)}
         aria-label={t("settings.audio.volume")}
+        aria-valuetext={t("settings.audio.volumeValue", { pct: volumePct })}
         className="w-16"
         data-testid="audio-volume-slider"
         disabled={muted}

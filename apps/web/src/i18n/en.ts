@@ -147,6 +147,8 @@ const en = {
   "settings.audio.mute": "Mute audio",
   "settings.audio.unmute": "Unmute audio",
   "settings.audio.volume": "Volume",
+  "settings.audio.groupLabel": "Audio settings",
+  "settings.audio.volumeValue": "Volume {{pct}}%",
   "room.mobile.toggleSideMenu": "Toggle side menu",
   "room.mobile.toggleChatPanel": "Toggle chat panel",
   "room.mobile.closeSideMenu": "Close side menu",

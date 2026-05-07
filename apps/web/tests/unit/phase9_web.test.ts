@@ -307,6 +307,35 @@ describe("Phase 9 web: AudioSettings component", () => {
     ) as HTMLInputElement;
     expect(slider.disabled).toBe(true);
   });
+
+  // Spec §17: settings should expose grouped controls with labelled landmarks
+  // and a spoken volume value so SR users hear "音量 60%" instead of just "60".
+  it("wraps the controls in a labelled group landmark", () => {
+    render(React.createElement(AudioSettings));
+    const root = screen.getByTestId("audio-settings");
+    expect(root.getAttribute("role")).toBe("group");
+    expect(root.getAttribute("aria-label")).toBe(
+      ja["settings.audio.groupLabel"],
+    );
+  });
+
+  it("exposes a localized aria-valuetext on the volume slider", async () => {
+    useAudioStore.setState({ muted: false, volume: 0.42 });
+    render(React.createElement(AudioSettings));
+    const slider = screen.getByTestId(
+      "audio-volume-slider",
+    ) as HTMLInputElement;
+    expect(slider.getAttribute("aria-valuetext")).toBe("音量 42%");
+  });
+
+  it("keeps the mute button accessible name in English", async () => {
+    await i18n.changeLanguage("en");
+    render(React.createElement(AudioSettings));
+    expect(
+      screen.getByTestId("audio-settings").getAttribute("aria-label"),
+    ).toBe(en["settings.audio.groupLabel"]);
+    await i18n.changeLanguage("ja");
+  });
 });
 
 describe("Phase 9 web: usePhaseBgm hook", () => {

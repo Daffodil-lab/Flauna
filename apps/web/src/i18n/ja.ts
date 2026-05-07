@@ -147,6 +147,8 @@ const ja = {
   "settings.audio.mute": "音をミュート",
   "settings.audio.unmute": "ミュートを解除",
   "settings.audio.volume": "音量",
+  "settings.audio.groupLabel": "音声設定",
+  "settings.audio.volumeValue": "音量 {{pct}}%",
   "room.mobile.toggleSideMenu": "メニューを開閉",
   "room.mobile.toggleChatPanel": "チャットを開閉",
   "room.mobile.closeSideMenu": "メニューを閉じる",

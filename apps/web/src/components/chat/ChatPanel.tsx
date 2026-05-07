@@ -30,7 +30,9 @@ function EntryRow({ entry }: { entry: ChatEntry }) {
       <span className={`font-semibold ${color}`}>{prefix}: </span>
       <span className="text-gray-100">{entry.text}</span>
       {entry.isStreaming && (
-        <span className="animate-pulse text-gray-500 ml-1">…</span>
+        <span aria-hidden="true" className="animate-pulse text-gray-500 ml-1">
+          …
+        </span>
       )}
     </div>
   );

@@ -109,6 +109,8 @@ export default function AssessmentScreen({ onBackToLobby }: Props) {
           <div
             className={`w-28 h-28 rounded-full border-4 flex items-center justify-center text-6xl font-black bg-gray-950 ${gradeColor}`}
             data-testid="assessment-grade"
+            role="img"
+            aria-label={t(`room.assessment.gradeLabel.${score.grade}`)}
           >
             {score.grade}
           </div>
@@ -134,11 +136,15 @@ export default function AssessmentScreen({ onBackToLobby }: Props) {
         </div>
 
         {myProposals.length > 0 && (
-          <div
+          <section
             className="bg-gray-950/60 rounded p-3 mb-6"
             data-testid="growth-proposals"
+            aria-labelledby="assessment-growth-title"
           >
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">
+            <p
+              id="assessment-growth-title"
+              className="text-xs text-gray-400 uppercase tracking-wider mb-2"
+            >
               {t("room.assessment.growthTitle")}
             </p>
             <ul className="space-y-1">
@@ -166,7 +172,7 @@ export default function AssessmentScreen({ onBackToLobby }: Props) {
                 </li>
               ))}
             </ul>
-          </div>
+          </section>
         )}
 
         <button

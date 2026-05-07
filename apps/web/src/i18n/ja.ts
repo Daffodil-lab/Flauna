@@ -77,6 +77,7 @@ const ja = {
   "room.deathAvoidance.timeLeft": "残り {{s}} 秒",
   "room.deathAvoidance.expired": "時間切れ — サーバー処理待ち",
   "room.deathAvoidance.noKatashiro": "形代が不足しています",
+  "room.deathAvoidance.choicesGroupLabel": "致命傷への対応を選択",
   "room.hud.katashiro": "所持形代",
   "room.hud.katashiroLabel": "形代 {{n}}",
   "room.hud.mpLabel": "MP {{current}}/{{max}}",

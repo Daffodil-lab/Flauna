@@ -77,6 +77,7 @@ const en = {
   "room.deathAvoidance.timeLeft": "{{s}} seconds remaining",
   "room.deathAvoidance.expired": "Time's up — waiting for server",
   "room.deathAvoidance.noKatashiro": "Insufficient katashiro",
+  "room.deathAvoidance.choicesGroupLabel": "Choose response to fatal blow",
   "room.hud.katashiro": "Katashiro carried",
   "room.hud.katashiroLabel": "Katashiro {{n}}",
   "room.hud.mpLabel": "MP {{current}}/{{max}}",

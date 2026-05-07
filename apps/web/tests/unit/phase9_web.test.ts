@@ -4622,3 +4622,96 @@ describe("Phase 9 web: EvasionDialog dice slider a11y (§17)", () => {
     expect(label.getAttribute("for")).toBe(slider.id);
   });
 });
+
+describe("Phase 9 web: DeathAvoidanceDialog choices radiogroup (§17)", () => {
+  function makeChar(): Character {
+    return {
+      id: "me",
+      name: "me",
+      player_id: "p1",
+      faction: "pc",
+      is_boss: false,
+      tai: 0,
+      rei: 0,
+      kou: 0,
+      jutsu: 0,
+      max_hp: 10,
+      max_mp: 10,
+      hp: 1,
+      mp: 10,
+      mobility: 4,
+      evasion_dice: 3,
+      max_evasion_dice: 3,
+      position: [0, 0],
+      equipped_weapons: [],
+      equipped_jacket: null,
+      armor_value: 0,
+      inventory: { katashiro: 5 },
+      skills: [],
+      arts: [],
+      status_effects: [],
+      has_acted_this_turn: false,
+      movement_used_this_turn: 0,
+      first_move_mode: null,
+    };
+  }
+
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+    useGameStore.setState({
+      gameState: { characters: [makeChar()] },
+      myPlayerId: "p1",
+    } as never);
+    usePendingStore.getState().setDeathAvoidanceRequest({
+      pending_id: "p",
+      target_character_id: "me",
+      incoming_damage: 12,
+      katashiro_required: 2,
+      deadline_seconds: 30,
+    });
+  });
+
+  afterEach(() => {
+    usePendingStore.getState().setDeathAvoidanceRequest(null);
+    useGameStore.setState({ gameState: null, myPlayerId: null } as never);
+  });
+
+  function renderDialog() {
+    return render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(DeathAvoidanceDialog, { onSubmit: vi.fn() }),
+      ),
+    );
+  }
+
+  it("ja and en expose the §17 choicesGroupLabel key", () => {
+    expect(ja).toHaveProperty("room.deathAvoidance.choicesGroupLabel");
+    expect(en).toHaveProperty("room.deathAvoidance.choicesGroupLabel");
+  });
+
+  it("wraps the three radios in a labelled radiogroup", () => {
+    renderDialog();
+    const group = screen.getByTestId("death-avoidance-choices");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    expect(group.getAttribute("aria-label")).toBe(
+      ja["room.deathAvoidance.choicesGroupLabel"],
+    );
+    const radios = group.querySelectorAll('input[type="radio"]');
+    expect(radios.length).toBe(3);
+  });
+
+  it("uses the localized radiogroup label in en", async () => {
+    await i18n.changeLanguage("en");
+    try {
+      renderDialog();
+      const group = screen.getByTestId("death-avoidance-choices");
+      expect(group.getAttribute("aria-label")).toBe(
+        en["room.deathAvoidance.choicesGroupLabel"],
+      );
+    } finally {
+      await i18n.changeLanguage("ja");
+    }
+  });
+});

@@ -32,6 +32,7 @@ const ja = {
   "room.evasion.attacker": "攻撃元",
   "room.evasion.remainingDice": "残り回避ダイス",
   "room.evasion.useDice": "使用ダイス",
+  "room.evasion.useDiceValue": "使用ダイス {{used}} / {{max}}",
   "room.evasion.auto": "自動",
   "room.evasion.allOut": "全力で躱す",
   "room.evasion.abandon": "回避放棄",

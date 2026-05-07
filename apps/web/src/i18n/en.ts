@@ -32,6 +32,7 @@ const en = {
   "room.evasion.attacker": "Attacker",
   "room.evasion.remainingDice": "Remaining Dice",
   "room.evasion.useDice": "Use Dice",
+  "room.evasion.useDiceValue": "Use {{used}} of {{max}} dice",
   "room.evasion.auto": "Auto",
   "room.evasion.allOut": "All Out",
   "room.evasion.abandon": "Abandon",

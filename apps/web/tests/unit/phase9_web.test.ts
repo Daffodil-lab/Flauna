@@ -4493,3 +4493,132 @@ describe("Phase 9 web: GameMap a11y region (§17)", () => {
     });
   });
 });
+
+describe("Phase 9 web: EvasionDialog dice slider a11y (§17)", () => {
+  function makeChar(id: string, playerId: string | null): Character {
+    return {
+      id,
+      name: id,
+      player_id: playerId,
+      faction: "pc",
+      is_boss: false,
+      tai: 0,
+      rei: 0,
+      kou: 0,
+      jutsu: 0,
+      max_hp: 10,
+      max_mp: 10,
+      hp: 10,
+      mp: 10,
+      mobility: 4,
+      evasion_dice: 4,
+      max_evasion_dice: 4,
+      position: [0, 0],
+      equipped_weapons: [],
+      equipped_jacket: null,
+      armor_value: 0,
+      inventory: {},
+      skills: [],
+      arts: [],
+      status_effects: [],
+      has_acted_this_turn: false,
+      movement_used_this_turn: 0,
+      first_move_mode: null,
+    };
+  }
+
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+    useGameStore.setState({
+      gameState: {
+        characters: [makeChar("me", "p1"), makeChar("foe", null)],
+      },
+      myPlayerId: "p1",
+    } as never);
+    usePendingStore.getState().setEvasionRequest({
+      pending_id: "p",
+      attacker_id: "foe",
+      target_id: "me",
+      deadline_seconds: 30,
+    });
+  });
+
+  afterEach(() => {
+    usePendingStore.getState().setEvasionRequest(null);
+    useGameStore.setState({ gameState: null, myPlayerId: null } as never);
+  });
+
+  function renderDialog() {
+    return render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(EvasionDialog, { onSubmit: vi.fn() }),
+      ),
+    );
+  }
+
+  it("ja and en expose the §17 useDiceValue key", () => {
+    expect(ja).toHaveProperty("room.evasion.useDiceValue");
+    expect(en).toHaveProperty("room.evasion.useDiceValue");
+  });
+
+  it("labels the dice slider and exposes a localized aria-valuetext", () => {
+    renderDialog();
+    const slider = document
+      .querySelector('[data-testid="evasion-dialog"]')!
+      .querySelector('input[type="range"]') as HTMLInputElement;
+    expect(slider.getAttribute("aria-label")).toBe(ja["room.evasion.useDice"]);
+    expect(slider.getAttribute("aria-valuetext")).toBe(
+      ja["room.evasion.useDiceValue"]
+        .replace("{{used}}", "0")
+        .replace("{{max}}", "4"),
+    );
+  });
+
+  it("updates aria-valuetext as the slider value changes", () => {
+    renderDialog();
+    const slider = document
+      .querySelector('[data-testid="evasion-dialog"]')!
+      .querySelector('input[type="range"]') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: "3" } });
+    expect(slider.getAttribute("aria-valuetext")).toBe(
+      ja["room.evasion.useDiceValue"]
+        .replace("{{used}}", "3")
+        .replace("{{max}}", "4"),
+    );
+  });
+
+  it("uses the localized aria-label and aria-valuetext in en", async () => {
+    await i18n.changeLanguage("en");
+    try {
+      renderDialog();
+      const slider = document
+        .querySelector('[data-testid="evasion-dialog"]')!
+        .querySelector('input[type="range"]') as HTMLInputElement;
+      expect(slider.getAttribute("aria-label")).toBe(
+        en["room.evasion.useDice"],
+      );
+      expect(slider.getAttribute("aria-valuetext")).toBe(
+        en["room.evasion.useDiceValue"]
+          .replace("{{used}}", "0")
+          .replace("{{max}}", "4"),
+      );
+    } finally {
+      await i18n.changeLanguage("ja");
+    }
+  });
+
+  it("associates the visible label with the slider via htmlFor/id", () => {
+    renderDialog();
+    const dialog = document.querySelector(
+      '[data-testid="evasion-dialog"]',
+    ) as HTMLElement;
+    const label = dialog.querySelector("label[for]") as HTMLLabelElement;
+    expect(label).not.toBeNull();
+    const slider = dialog.querySelector(
+      'input[type="range"]',
+    ) as HTMLInputElement;
+    expect(label.getAttribute("for")).toBe(slider.id);
+  });
+});

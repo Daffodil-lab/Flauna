@@ -1489,6 +1489,29 @@ describe("Phase 9 web: AiThinkingIndicator (§9-2)", () => {
       "custom_stage",
     );
   });
+
+  // Spec §17: SR users should hear a single combined polite announcement
+  // (label + stage + actor) rather than four disconnected nodes.
+  it("announces as a polite atomic live region with a combined aria-label", () => {
+    useGameStore.setState({
+      gameState: {
+        characters: [
+          { id: "enemy1", name: "鬼A", player_id: null } as unknown as Character,
+        ],
+      },
+    } as never);
+    useUIStore.getState().setAiThinking("deciding_action", "enemy1");
+    renderIndicator();
+    const banner = screen.getByTestId("ai-thinking-indicator");
+    expect(banner.getAttribute("role")).toBe("status");
+    expect(banner.getAttribute("aria-live")).toBe("polite");
+    expect(banner.getAttribute("aria-atomic")).toBe("true");
+    expect(banner.getAttribute("aria-busy")).toBe("true");
+    const label = banner.getAttribute("aria-label") ?? "";
+    expect(label).toContain(ja["room.ai.thinking"]);
+    expect(label).toContain(ja["room.ai.stage.deciding_action"]);
+    expect(label).toContain("鬼A");
+  });
 });
 
 describe("Phase 9 web: useDeadlineUrgency hook (§16 alarm timer)", () => {

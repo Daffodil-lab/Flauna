@@ -106,8 +106,20 @@ export default function ActionDetailModal({ onSubmit }: Props) {
 
         {/* Weapon */}
         <div className="mb-3">
-          <label className="text-xs text-gray-400 block mb-1">{t("room.action.weapon")}</label>
-          <div className="bg-gray-800 rounded px-3 py-2 text-sm">{weaponId}</div>
+          {/* §17 a11y: <label> requires a control association — use a div + */}
+          {/* aria-labelledby so the read-only weapon value is named for SR. */}
+          <div
+            id="action-weapon-label"
+            className="text-xs text-gray-400 block mb-1"
+          >
+            {t("room.action.weapon")}
+          </div>
+          <div
+            className="bg-gray-800 rounded px-3 py-2 text-sm"
+            aria-labelledby="action-weapon-label"
+          >
+            {weaponId}
+          </div>
         </div>
 
         {/* Move mode */}
@@ -172,8 +184,16 @@ export default function ActionDetailModal({ onSubmit }: Props) {
 
         {/* Target */}
         <div className="mb-3">
-          <label className="text-xs text-gray-400 block mb-1">{t("room.action.target")}</label>
-          <div className="bg-gray-800 rounded px-3 py-2 text-sm">
+          <div
+            id="action-target-label"
+            className="text-xs text-gray-400 block mb-1"
+          >
+            {t("room.action.target")}
+          </div>
+          <div
+            className="bg-gray-800 rounded px-3 py-2 text-sm"
+            aria-labelledby="action-target-label"
+          >
             {target.name} (HP {target.hp}/{target.max_hp})
           </div>
         </div>

@@ -103,6 +103,9 @@ export default function ContextMenu({
       ref={ref}
       role="menu"
       aria-labelledby={titleId}
+      // §17 a11y: explicit vertical orientation matches the ArrowUp/ArrowDown
+      // roving so SR users hear the navigation axis up-front.
+      aria-orientation="vertical"
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       data-testid="context-menu"

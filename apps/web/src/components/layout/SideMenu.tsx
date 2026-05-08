@@ -285,13 +285,23 @@ export default function SideMenu() {
       )}
 
       {gameState.combat_pressure && (
-        <div
+        // §17 a11y: pressure escalation (normal → hard → ultra_hard) is signalled
+        // by colour and label. Marking the panel as a polite live region lets SR
+        // users hear the escalation when the level text flips.
+        <section
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-labelledby="sidemenu-hard-mode-title"
           data-testid="hard-mode-panel"
           className={`mt-3 p-2 rounded border text-xs ${
             PRESSURE_BG[gameState.combat_pressure.level]
           }`}
         >
-          <div className="text-gray-500 uppercase tracking-wide mb-1">
+          <div
+            id="sidemenu-hard-mode-title"
+            className="text-gray-500 uppercase tracking-wide mb-1"
+          >
             {t("room.hardMode.title")}
           </div>
           <div
@@ -310,7 +320,7 @@ export default function SideMenu() {
               n: gameState.combat_pressure.zero_damage_rounds,
             })}
           </div>
-        </div>
+        </section>
       )}
       </aside>
     </>

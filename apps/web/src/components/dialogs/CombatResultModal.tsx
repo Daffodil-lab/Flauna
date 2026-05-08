@@ -52,6 +52,7 @@ export default function CombatResultModal({ onBackToLobby }: Props) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="combat-result-title"
+      aria-describedby="combat-result-message"
       data-testid="combat-result-modal"
       onKeyDown={handleKeyDown}
     >
@@ -74,7 +75,10 @@ export default function CombatResultModal({ onBackToLobby }: Props) {
         >
           {isVictory ? t("combat.victory") : t("combat.defeat")}
         </h2>
-        <p className="text-gray-400 text-sm mb-6">
+        <p
+          id="combat-result-message"
+          className="text-gray-400 text-sm mb-6"
+        >
           {isVictory ? t("combat.victoryMsg") : t("combat.defeatMsg")}
         </p>
         <button

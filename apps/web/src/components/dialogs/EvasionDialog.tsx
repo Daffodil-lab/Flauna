@@ -95,6 +95,7 @@ export default function EvasionDialog({ onSubmit }: Props) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="evasion-dialog-title"
+      aria-describedby="evasion-dialog-context"
       onKeyDown={handleKeyDown}
     >
       <div
@@ -108,7 +109,7 @@ export default function EvasionDialog({ onSubmit }: Props) {
           {t("room.evasion.title")}
         </h2>
 
-        <div className="space-y-2 mb-4 text-sm">
+        <div id="evasion-dialog-context" className="space-y-2 mb-4 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-400">{t("room.evasion.attacker")}</span>
             <span>{attacker?.name ?? evasionRequest.attacker_id}</span>

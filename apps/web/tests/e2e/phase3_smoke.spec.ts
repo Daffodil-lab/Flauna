@@ -30,8 +30,10 @@ test("lobby → room → 1-turn attack → narrative is rendered", async ({ page
   await expect(page.getByTestId("game-map-char-char-enemy")).toBeVisible();
 
   // Open context menu against the enemy via the keyboard-accessible
-  // "open actions" button (mirror of the right-click flow).
-  await page.getByTestId("game-map-actions-char-enemy").click();
+  // "open actions" button (mirror of the right-click flow). The button lives
+  // in an sr-only list overlapped by the Konva canvas, so we bypass the
+  // pointer-event interception check.
+  await page.getByTestId("game-map-actions-char-enemy").click({ force: true });
   await expect(page.getByTestId("context-menu")).toBeVisible();
 
   await page.getByRole("menuitem", { name: /攻撃する|Attack/ }).first().click();

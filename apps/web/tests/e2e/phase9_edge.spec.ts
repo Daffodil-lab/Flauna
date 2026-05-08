@@ -43,8 +43,12 @@ test("VERSION_MISMATCH error triggers an automatic resubmit with the latest vers
     state: makeState({ version: 2 }),
   });
 
-  // Fire an attack from the UI; capture the original submit.
-  await page.getByTestId("game-map-actions-char-enemy").click();
+  // Fire an attack from the UI; capture the original submit. The actions
+  // button is sr-only beneath the Konva canvas, so click is forced past the
+  // pointer-event interception check.
+  await page
+    .getByTestId("game-map-actions-char-enemy")
+    .click({ force: true });
   await page.getByRole("menuitem", { name: /攻撃する|Attack/ }).first().click();
 
   await expect

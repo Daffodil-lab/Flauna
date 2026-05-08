@@ -85,6 +85,7 @@ export default function AssessmentScreen({ onBackToLobby }: Props) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="assessment-screen-title"
+      aria-describedby="assessment-screen-stats"
       data-testid="assessment-screen"
       onKeyDown={handleKeyDown}
     >
@@ -116,7 +117,10 @@ export default function AssessmentScreen({ onBackToLobby }: Props) {
           </div>
         </div>
 
-        <div className="bg-gray-950/60 rounded p-3 mb-6">
+        <div
+          id="assessment-screen-stats"
+          className="bg-gray-950/60 rounded p-3 mb-6"
+        >
           <StatRow
             label={t("room.assessment.rounds")}
             value={score.rounds_taken}

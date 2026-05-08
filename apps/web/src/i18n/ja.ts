@@ -87,6 +87,7 @@ const ja = {
   "room.castArt.mp": "MP {{current}}/{{max}}",
   "room.castArt.noneLearned": "修得している祓魔術がありません。",
   "room.castArt.pickTarget": "対象",
+  "room.castArt.pickTargetPlaceholder": "対象を選択してください",
   "room.castArt.targetType.none": "対象不要",
   "room.castArt.targetType.single": "単体対象",
   "room.castArt.targetType.area": "範囲（術者中心）",

@@ -87,6 +87,7 @@ const en = {
   "room.castArt.mp": "MP {{current}}/{{max}}",
   "room.castArt.noneLearned": "No arts learned.",
   "room.castArt.pickTarget": "Target",
+  "room.castArt.pickTargetPlaceholder": "Select a target",
   "room.castArt.targetType.none": "No target",
   "room.castArt.targetType.single": "Single target",
   "room.castArt.targetType.area": "Area (caster-centered)",

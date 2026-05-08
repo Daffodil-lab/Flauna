@@ -93,6 +93,7 @@ export default function ActionDetailModal({ onSubmit }: Props) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="action-detail-title"
+      aria-describedby="action-detail-target-summary"
       data-testid="action-detail-modal"
       onKeyDown={handleKeyDown}
     >
@@ -191,6 +192,7 @@ export default function ActionDetailModal({ onSubmit }: Props) {
             {t("room.action.target")}
           </div>
           <div
+            id="action-detail-target-summary"
             className="bg-gray-800 rounded px-3 py-2 text-sm"
             aria-labelledby="action-target-label"
           >

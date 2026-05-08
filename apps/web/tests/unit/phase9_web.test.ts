@@ -260,6 +260,35 @@ describe("Phase 9 web: audio service", () => {
     stopBgm();
     expect(stopBgmSpy).toHaveBeenCalledTimes(1);
   });
+
+  // Phase 9 fix: tweaking volume/muted while BGM is already playing must
+  // reach the backend so the user hears the change without waiting for the
+  // next phase transition.
+  it("propagates volume changes to the running BGM via setBgmVolume", () => {
+    const setBgmVolumeSpy = vi.fn();
+    setAudioBackend({
+      playSe: vi.fn(),
+      playBgm: vi.fn(),
+      stopBgm: vi.fn(),
+      setBgmVolume: setBgmVolumeSpy,
+    });
+    useAudioStore.getState().setVolume(0.25);
+    expect(setBgmVolumeSpy).toHaveBeenLastCalledWith(0.25);
+  });
+
+  it("forces BGM to 0 when muted is toggled on", () => {
+    const setBgmVolumeSpy = vi.fn();
+    setAudioBackend({
+      playSe: vi.fn(),
+      playBgm: vi.fn(),
+      stopBgm: vi.fn(),
+      setBgmVolume: setBgmVolumeSpy,
+    });
+    useAudioStore.getState().setMuted(true);
+    expect(setBgmVolumeSpy).toHaveBeenLastCalledWith(0);
+    useAudioStore.getState().setMuted(false);
+    expect(setBgmVolumeSpy).toHaveBeenLastCalledWith(useAudioStore.getState().volume);
+  });
 });
 
 describe("Phase 9 web: AudioSettings component", () => {
@@ -378,8 +407,14 @@ describe("Phase 9 web: LanguageSwitcher (§17 a11y)", () => {
 });
 
 describe("Phase 9 web: usePhaseBgm hook", () => {
-  function PhaseHarness({ phase }: { phase: GamePhase | undefined }) {
-    usePhaseBgm(phase);
+  function PhaseHarness({
+    phase,
+    connectionStatus,
+  }: {
+    phase: GamePhase | undefined;
+    connectionStatus?: import("../../src/types").ConnectionStatus;
+  }) {
+    usePhaseBgm(phase, connectionStatus);
     return null;
   }
 
@@ -451,6 +486,31 @@ describe("Phase 9 web: usePhaseBgm hook", () => {
     render(React.createElement(PhaseHarness, { phase: undefined }));
     expect(playBgmSpy).not.toHaveBeenCalled();
     expect(stopBgmSpy).not.toHaveBeenCalled();
+  });
+
+  // §9-3: SessionLost takes over the screen, so BGM should not keep looping.
+  it("stops BGM when connectionStatus becomes SESSION_LOST", () => {
+    const playBgmSpy = vi.fn();
+    const stopBgmSpy = vi.fn();
+    setAudioBackend({
+      playSe: vi.fn(),
+      playBgm: playBgmSpy,
+      stopBgm: stopBgmSpy,
+    });
+    const { rerender } = render(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "ACTIVE",
+      }),
+    );
+    stopBgmSpy.mockClear();
+    rerender(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "SESSION_LOST",
+      }),
+    );
+    expect(stopBgmSpy).toHaveBeenCalled();
   });
 });
 

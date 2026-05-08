@@ -3532,6 +3532,18 @@ describe("Phase 9 web: CastArtModal keyboard + a11y (§17)", () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(useUIStore.getState().activeModal).toBeNull();
   });
+
+  it("groups the available arts as a radiogroup labelled by the modal title", () => {
+    renderModal();
+    const group = screen.getByTestId("cast-art-pick-group");
+    expect(group.getAttribute("role")).toBe("radiogroup");
+    const labelId = group.getAttribute("aria-labelledby");
+    expect(labelId).not.toBeNull();
+    expect(document.getElementById(labelId!)?.textContent).toBe(
+      ja["room.castArt.title"],
+    );
+    expect(group.querySelectorAll('input[type="radio"]').length).toBe(2);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -3308,6 +3308,30 @@ describe("Phase 9 web: ActionDetailModal keyboard + a11y (§17)", () => {
       await i18n.changeLanguage("ja");
     }
   });
+
+  it("associates the dice slider label via htmlFor/id and exposes aria-valuetext", () => {
+    renderModal();
+    const dialog = screen.getByTestId("action-detail-modal");
+    const slider = dialog.querySelector(
+      "input[type='range']",
+    ) as HTMLInputElement;
+    const label = dialog.querySelector(
+      `label[for='${slider.id}']`,
+    ) as HTMLLabelElement;
+    expect(label).not.toBeNull();
+    expect(slider.getAttribute("aria-label")).toBe(ja["room.action.dice"]);
+    expect(slider.getAttribute("aria-valuetext")).toBe(
+      ja["room.action.totalDice"]
+        .replace("{{total}}", "1")
+        .replace("{{max}}", "4"),
+    );
+    fireEvent.change(slider, { target: { value: "3" } });
+    expect(slider.getAttribute("aria-valuetext")).toBe(
+      ja["room.action.totalDice"]
+        .replace("{{total}}", "3")
+        .replace("{{max}}", "4"),
+    );
+  });
 });
 
 describe("Phase 9 web: CastArtModal keyboard + a11y (§17)", () => {

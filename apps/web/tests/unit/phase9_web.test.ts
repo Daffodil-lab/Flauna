@@ -407,8 +407,14 @@ describe("Phase 9 web: LanguageSwitcher (§17 a11y)", () => {
 });
 
 describe("Phase 9 web: usePhaseBgm hook", () => {
-  function PhaseHarness({ phase }: { phase: GamePhase | undefined }) {
-    usePhaseBgm(phase);
+  function PhaseHarness({
+    phase,
+    connectionStatus,
+  }: {
+    phase: GamePhase | undefined;
+    connectionStatus?: import("../../src/types").ConnectionStatus;
+  }) {
+    usePhaseBgm(phase, connectionStatus);
     return null;
   }
 
@@ -480,6 +486,31 @@ describe("Phase 9 web: usePhaseBgm hook", () => {
     render(React.createElement(PhaseHarness, { phase: undefined }));
     expect(playBgmSpy).not.toHaveBeenCalled();
     expect(stopBgmSpy).not.toHaveBeenCalled();
+  });
+
+  // §9-3: SessionLost takes over the screen, so BGM should not keep looping.
+  it("stops BGM when connectionStatus becomes SESSION_LOST", () => {
+    const playBgmSpy = vi.fn();
+    const stopBgmSpy = vi.fn();
+    setAudioBackend({
+      playSe: vi.fn(),
+      playBgm: playBgmSpy,
+      stopBgm: stopBgmSpy,
+    });
+    const { rerender } = render(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "ACTIVE",
+      }),
+    );
+    stopBgmSpy.mockClear();
+    rerender(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "SESSION_LOST",
+      }),
+    );
+    expect(stopBgmSpy).toHaveBeenCalled();
   });
 });
 

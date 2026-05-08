@@ -69,6 +69,7 @@ export default function Room() {
     setAuth,
     myPlayerId,
     lastSeenEventId,
+    connectionStatus,
   } = useGameStore();
   const { addEntry, updateLastNarrative } = useChatStore();
   const {
@@ -408,7 +409,7 @@ export default function Room() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
-  usePhaseBgm(gameState?.phase);
+  usePhaseBgm(gameState?.phase, connectionStatus);
   useTurnStartSe(gameState, myPlayerId);
 
   const online = useOnlineStatus();

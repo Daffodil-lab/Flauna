@@ -249,17 +249,29 @@ export default function SideMenu() {
 
       {turn_order.length > 0 && (
         <div className="mt-3">
-          <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+          <div
+            id="sidemenu-turn-order-title"
+            className="text-xs text-gray-500 uppercase tracking-wide mb-1"
+          >
             {t("room.turnOrder")}
           </div>
-          <ol className="space-y-0.5">
+          {/* §17 a11y: the list is highlighted by background colour alone, so
+              flag the current step with aria-current and label the ordered list
+              for SR users. */}
+          <ol
+            aria-labelledby="sidemenu-turn-order-title"
+            data-testid="sidemenu-turn-order"
+            className="space-y-0.5"
+          >
             {turn_order.map((id, i) => {
+              const isCurrent = i === current_turn_index % turn_order.length;
               const char = characters.find((c) => c.id === id);
               return (
                 <li
                   key={id}
+                  {...(isCurrent ? { "aria-current": "true" } : {})}
                   className={`text-xs px-1 rounded ${
-                    i === current_turn_index % turn_order.length
+                    isCurrent
                       ? "bg-yellow-700 text-white"
                       : "text-gray-400"
                   }`}
@@ -273,13 +285,23 @@ export default function SideMenu() {
       )}
 
       {gameState.combat_pressure && (
-        <div
+        // §17 a11y: pressure escalation (normal → hard → ultra_hard) is signalled
+        // by colour and label. Marking the panel as a polite live region lets SR
+        // users hear the escalation when the level text flips.
+        <section
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-labelledby="sidemenu-hard-mode-title"
           data-testid="hard-mode-panel"
           className={`mt-3 p-2 rounded border text-xs ${
             PRESSURE_BG[gameState.combat_pressure.level]
           }`}
         >
-          <div className="text-gray-500 uppercase tracking-wide mb-1">
+          <div
+            id="sidemenu-hard-mode-title"
+            className="text-gray-500 uppercase tracking-wide mb-1"
+          >
             {t("room.hardMode.title")}
           </div>
           <div
@@ -298,7 +320,7 @@ export default function SideMenu() {
               n: gameState.combat_pressure.zero_damage_rounds,
             })}
           </div>
-        </div>
+        </section>
       )}
       </aside>
     </>

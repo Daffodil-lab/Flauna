@@ -47,18 +47,22 @@ export default function Lobby() {
         className="flex flex-col gap-4 w-full max-w-sm"
         aria-label={t("lobby.createRoom")}
       >
-        <label className="flex flex-col gap-1">
+        {/* §17 a11y: explicit htmlFor/id so SR users get a robust label-to-input
+            association even when the wrapping <label> is bypassed. */}
+        <label htmlFor="lobby-scenario-id" className="flex flex-col gap-1">
           <span>{t("lobby.scenarioId")}</span>
           <input
+            id="lobby-scenario-id"
             className="border rounded px-2 py-1"
             value={scenarioId}
             onChange={(e) => setScenarioId(e.target.value)}
             required
           />
         </label>
-        <label className="flex flex-col gap-1">
+        <label htmlFor="lobby-player-name" className="flex flex-col gap-1">
           <span>{t("lobby.playerName")}</span>
           <input
+            id="lobby-player-name"
             data-testid="lobby-player-name"
             className="border rounded px-2 py-1"
             value={playerName}
@@ -76,9 +80,10 @@ export default function Lobby() {
         className="flex flex-col gap-2 w-full max-w-sm"
         aria-label={t("lobby.joinRoom")}
       >
-        <label className="flex flex-col gap-1">
+        <label htmlFor="lobby-room-id" className="flex flex-col gap-1">
           <span>{t("lobby.roomId")}</span>
           <input
+            id="lobby-room-id"
             data-testid="lobby-room-id"
             className="border rounded px-2 py-1"
             value={joinRoomId}

@@ -260,6 +260,35 @@ describe("Phase 9 web: audio service", () => {
     stopBgm();
     expect(stopBgmSpy).toHaveBeenCalledTimes(1);
   });
+
+  // Phase 9 fix: tweaking volume/muted while BGM is already playing must
+  // reach the backend so the user hears the change without waiting for the
+  // next phase transition.
+  it("propagates volume changes to the running BGM via setBgmVolume", () => {
+    const setBgmVolumeSpy = vi.fn();
+    setAudioBackend({
+      playSe: vi.fn(),
+      playBgm: vi.fn(),
+      stopBgm: vi.fn(),
+      setBgmVolume: setBgmVolumeSpy,
+    });
+    useAudioStore.getState().setVolume(0.25);
+    expect(setBgmVolumeSpy).toHaveBeenLastCalledWith(0.25);
+  });
+
+  it("forces BGM to 0 when muted is toggled on", () => {
+    const setBgmVolumeSpy = vi.fn();
+    setAudioBackend({
+      playSe: vi.fn(),
+      playBgm: vi.fn(),
+      stopBgm: vi.fn(),
+      setBgmVolume: setBgmVolumeSpy,
+    });
+    useAudioStore.getState().setMuted(true);
+    expect(setBgmVolumeSpy).toHaveBeenLastCalledWith(0);
+    useAudioStore.getState().setMuted(false);
+    expect(setBgmVolumeSpy).toHaveBeenLastCalledWith(useAudioStore.getState().volume);
+  });
 });
 
 describe("Phase 9 web: AudioSettings component", () => {

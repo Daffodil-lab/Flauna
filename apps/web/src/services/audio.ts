@@ -26,6 +26,13 @@ interface AudioBackend {
   playSe(cue: SeCue, volume: number): void;
   playBgm(cue: BgmCue, volume: number): void;
   stopBgm(): void;
+  /**
+   * Update the volume of the currently-playing BGM, if any. Used when the
+   * user adjusts the slider or toggles mute mid-playback so the change is
+   * audible immediately rather than waiting for the next phase transition.
+   * Optional so test fakes that only need play/stop don't have to stub it.
+   */
+  setBgmVolume?(volume: number): void;
 }
 
 /** Map of cue → asset URL. Empty values mean "no asset bundled yet". */
@@ -97,6 +104,15 @@ class HtmlAudioBackend implements AudioBackend {
     this.bgm = null;
     this.currentBgmCue = null;
   }
+
+  setBgmVolume(volume: number): void {
+    if (!this.bgm) return;
+    try {
+      this.bgm.volume = volume;
+    } catch {
+      // ignore
+    }
+  }
 }
 
 let backend: AudioBackend = new HtmlAudioBackend();
@@ -126,3 +142,26 @@ export function playBgm(cue: BgmCue): void {
 export function stopBgm(): void {
   backend.stopBgm();
 }
+
+/**
+ * Push the current effective volume into the backend so a running BGM picks
+ * up mute/slider changes without waiting for a phase transition. Wired by
+ * `useAudioStore.subscribe` in audio store init.
+ */
+export function syncBgmVolume(): void {
+  backend.setBgmVolume?.(effectiveVolume());
+}
+
+// Subscribe to audio store changes so the running BGM reflects mute/volume
+// adjustments immediately. Guarded so the subscription is set up exactly once
+// even if this module is re-evaluated by the test runner.
+let __subscribed = false;
+function subscribeAudioStore(): void {
+  if (__subscribed) return;
+  __subscribed = true;
+  useAudioStore.subscribe((state, prev) => {
+    if (state.muted === prev.muted && state.volume === prev.volume) return;
+    backend.setBgmVolume?.(state.muted ? 0 : state.volume);
+  });
+}
+subscribeAudioStore();

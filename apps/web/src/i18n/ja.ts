@@ -33,6 +33,7 @@ const ja = {
   "room.evasion.remainingDice": "残り回避ダイス",
   "room.evasion.useDice": "使用ダイス",
   "room.evasion.useDiceValue": "使用ダイス {{used}} / {{max}}",
+  "room.evasion.presetGroupLabel": "回避ダイスのプリセット",
   "room.evasion.auto": "自動",
   "room.evasion.allOut": "全力で躱す",
   "room.evasion.abandon": "回避放棄",

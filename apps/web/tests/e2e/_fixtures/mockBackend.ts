@@ -1,4 +1,9 @@
-import { test as base, expect, type Page, type WebSocketRoute } from "@playwright/test";
+import {
+  test as base,
+  expect,
+  type Page,
+  type WebSocketRoute,
+} from "@playwright/test";
 
 export const ROOM_ID = "e2e-room-1";
 export const PLAYER_ID = "e2e-player-1";
@@ -13,17 +18,28 @@ export const PLAYER_TOKEN = "e2e-token-xyz";
  */
 export class MockBackend {
   private route: WebSocketRoute | null = null;
-  private resolveRoute: ((r: WebSocketRoute) => void) | null = null;
-  private waitForRoute: Promise<WebSocketRoute>;
+  private resolveJoin: (() => void) | null = null;
+  private waitForJoin: Promise<void>;
   readonly received: unknown[] = [];
 
   constructor() {
-    this.waitForRoute = new Promise<WebSocketRoute>((resolve) => {
-      this.resolveRoute = resolve;
+    this.waitForJoin = new Promise<void>((resolve) => {
+      this.resolveJoin = resolve;
     });
   }
 
   async install(page: Page): Promise<void> {
+    page.on("console", (msg) => {
+      if (msg.type() === "error" || msg.type() === "warning") {
+        // eslint-disable-next-line no-console
+        console.log(`[browser ${msg.type()}]`, msg.text());
+      }
+    });
+    page.on("pageerror", (err) => {
+      // eslint-disable-next-line no-console
+      console.log("[browser pageerror]", err.message);
+    });
+
     await page.route("**/api/v1/rooms", async (route) => {
       const req = route.request();
       if (req.method() !== "POST") {
@@ -58,23 +74,35 @@ export class MockBackend {
       });
     });
 
-    await page.routeWebSocket(/\/room\//, (ws) => {
-      // Keep frames from the page so tests can assert what the client sent.
-      ws.onMessage((raw) => {
-        try {
-          this.received.push(JSON.parse(String(raw)));
-        } catch {
-          this.received.push(raw);
-        }
-      });
-      this.route = ws;
-      this.resolveRoute?.(ws);
-    });
+    await page.routeWebSocket(
+      (url) => url.pathname.startsWith("/room/"),
+      (ws) => {
+        ws.onMessage((raw) => {
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(String(raw));
+          } catch {
+            parsed = raw;
+          }
+          this.received.push(parsed);
+          if (
+            typeof parsed === "object" &&
+            parsed !== null &&
+            (parsed as { action?: unknown }).action === "join_room"
+          ) {
+            this.resolveJoin?.();
+          }
+        });
+        this.route = ws;
+      },
+    );
   }
 
-  /** Wait for the page to actually open the WS connection. */
-  async ready(): Promise<WebSocketRoute> {
-    return this.waitForRoute;
+  /** Wait for the page to actually open the WS connection AND finish the
+   *  client-side handshake by sending its `join_room` frame. Sending mock
+   *  frames before this point races against the page's onopen handler. */
+  async ready(): Promise<void> {
+    await this.waitForJoin;
   }
 
   /** Push a server frame to the page. Must be called after `ready()`. */
@@ -89,10 +117,8 @@ export class MockBackend {
   closeSocket(code: number = 1006): void {
     this.route?.close({ code });
     this.route = null;
-    // Reset the ready latch so a subsequent `await mock.ready()` waits for the
-    // client's reconnection attempt to land.
-    this.waitForRoute = new Promise<WebSocketRoute>((resolve) => {
-      this.resolveRoute = resolve;
+    this.waitForJoin = new Promise<void>((resolve) => {
+      this.resolveJoin = resolve;
     });
   }
 

@@ -113,7 +113,12 @@ export default function CastArtModal({ onSubmit }: Props) {
             {t("room.castArt.noneLearned")}
           </div>
         ) : (
-          <div className="space-y-1 mb-3 max-h-56 overflow-y-auto">
+          <div
+            className="space-y-1 mb-3 max-h-56 overflow-y-auto"
+            role="radiogroup"
+            aria-labelledby="cast-art-title"
+            data-testid="cast-art-pick-group"
+          >
             {availableArts.map((a) => {
               const affordable = mp >= a.mp_cost;
               const isSelected = artName === a.name;

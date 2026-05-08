@@ -180,15 +180,24 @@ export default function ActionDetailModal({ onSubmit }: Props) {
 
         {/* Dice distribution */}
         <div className="mb-4">
-          <label className="text-xs text-gray-400 block mb-1">
+          <label
+            htmlFor="action-detail-dice"
+            className="text-xs text-gray-400 block mb-1"
+          >
             {t("room.action.dice")}: {diceCount}
           </label>
           <input
+            id="action-detail-dice"
             type="range"
             min={1}
             max={maxDice}
             value={diceCount}
             onChange={(e) => setDiceCount(Number(e.target.value))}
+            aria-label={t("room.action.dice")}
+            aria-valuetext={t("room.action.totalDice", {
+              total: diceCount,
+              max: maxDice,
+            })}
             className="w-full"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">

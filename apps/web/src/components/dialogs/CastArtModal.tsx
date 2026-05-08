@@ -93,6 +93,7 @@ export default function CastArtModal({ onSubmit }: Props) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="cast-art-title"
+      aria-describedby="cast-art-mp"
       data-testid="cast-art-modal"
       onKeyDown={handleKeyDown}
     >
@@ -104,7 +105,7 @@ export default function CastArtModal({ onSubmit }: Props) {
           {t("room.castArt.title")}
         </h2>
 
-        <div className="text-xs text-gray-400 mb-3">
+        <div id="cast-art-mp" className="text-xs text-gray-400 mb-3">
           {t("room.castArt.mp", { current: mp, max: myChar.max_mp })}
         </div>
 

@@ -249,17 +249,29 @@ export default function SideMenu() {
 
       {turn_order.length > 0 && (
         <div className="mt-3">
-          <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+          <div
+            id="sidemenu-turn-order-title"
+            className="text-xs text-gray-500 uppercase tracking-wide mb-1"
+          >
             {t("room.turnOrder")}
           </div>
-          <ol className="space-y-0.5">
+          {/* §17 a11y: the list is highlighted by background colour alone, so
+              flag the current step with aria-current and label the ordered list
+              for SR users. */}
+          <ol
+            aria-labelledby="sidemenu-turn-order-title"
+            data-testid="sidemenu-turn-order"
+            className="space-y-0.5"
+          >
             {turn_order.map((id, i) => {
+              const isCurrent = i === current_turn_index % turn_order.length;
               const char = characters.find((c) => c.id === id);
               return (
                 <li
                   key={id}
+                  {...(isCurrent ? { "aria-current": "true" } : {})}
                   className={`text-xs px-1 rounded ${
-                    i === current_turn_index % turn_order.length
+                    isCurrent
                       ? "bg-yellow-700 text-white"
                       : "text-gray-400"
                   }`}

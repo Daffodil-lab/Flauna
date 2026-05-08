@@ -95,6 +95,7 @@ export default function DeathAvoidanceDialog({ onSubmit }: Props) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="death-avoidance-dialog-title"
+      aria-describedby="death-avoidance-dialog-context"
       onKeyDown={handleKeyDown}
     >
       <div
@@ -109,7 +110,10 @@ export default function DeathAvoidanceDialog({ onSubmit }: Props) {
           {t("room.deathAvoidance.title")}
         </h2>
 
-        <div className="space-y-2 mb-4 text-sm">
+        <div
+          id="death-avoidance-dialog-context"
+          className="space-y-2 mb-4 text-sm"
+        >
           <div className="flex justify-between">
             <span className="text-gray-400">
               {t("room.deathAvoidance.incomingDamage")}

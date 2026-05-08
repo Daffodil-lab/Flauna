@@ -95,6 +95,7 @@ export default function EvasionDialog({ onSubmit }: Props) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="evasion-dialog-title"
+      aria-describedby="evasion-dialog-context"
       onKeyDown={handleKeyDown}
     >
       <div
@@ -108,7 +109,7 @@ export default function EvasionDialog({ onSubmit }: Props) {
           {t("room.evasion.title")}
         </h2>
 
-        <div className="space-y-2 mb-4 text-sm">
+        <div id="evasion-dialog-context" className="space-y-2 mb-4 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-400">{t("room.evasion.attacker")}</span>
             <span>{attacker?.name ?? evasionRequest.attacker_id}</span>
@@ -152,7 +153,14 @@ export default function EvasionDialog({ onSubmit }: Props) {
           />
         </div>
 
-        <div className="flex gap-2 mb-3">
+        {/* §17 a11y: cluster the three presets under a named group so SR users
+            understand they are alternatives that pre-fill the dice slider above. */}
+        <div
+          className="flex gap-2 mb-3"
+          role="group"
+          aria-label={t("room.evasion.presetGroupLabel")}
+          data-testid="evasion-preset-group"
+        >
           <button
             onClick={() => setUsedDice(Math.ceil(maxDice / 2))}
             className="flex-1 bg-gray-700 hover:bg-gray-600 rounded py-1 text-sm"

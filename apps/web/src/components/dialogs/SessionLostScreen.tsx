@@ -47,6 +47,7 @@ export default function SessionLostScreen({ onBackToLobby }: Props) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="session-lost-title"
+      aria-describedby="session-lost-message"
       data-testid="session-lost-screen"
       onKeyDown={handleKeyDown}
     >
@@ -60,7 +61,10 @@ export default function SessionLostScreen({ onBackToLobby }: Props) {
         >
           {t("room.sessionLost.title")}
         </h2>
-        <p className="text-gray-400 text-sm mb-6 whitespace-pre-line">
+        <p
+          id="session-lost-message"
+          className="text-gray-400 text-sm mb-6 whitespace-pre-line"
+        >
           {t("room.sessionLost.message")}
         </p>
         <button

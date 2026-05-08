@@ -170,9 +170,15 @@ export default function CastArtModal({ onSubmit }: Props) {
               id="cast-art-target"
               value={targetId ?? ""}
               onChange={(e) => setTargetId(e.target.value || null)}
+              required
+              aria-required="true"
               className="w-full bg-gray-800 rounded px-2 py-1 text-sm border border-gray-600"
             >
-              <option value="">—</option>
+              {/* §17 a11y: a localized placeholder is read by SR rather than */}
+              {/* the bare em-dash, and aria-required communicates the gating. */}
+              <option value="" disabled>
+                {t("room.castArt.pickTargetPlaceholder")}
+              </option>
               {targetPickable.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} (HP {c.hp}/{c.max_hp})

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { useGameStore, useUIStore } from "../../stores";
 import type { Character, PressureLevel } from "../../types";
@@ -69,9 +69,15 @@ function CharCard({
   const { t } = useTranslation();
   const katashiro = char.inventory?.["katashiro"];
   const statusEffects = char.status_effects ?? [];
+  // §17 a11y: group HP/MP/evasion/status under the character name so SR users
+  // hear "<name>, group" before the resource read-out instead of an unlabelled
+  // run of figures.
+  const nameId = useId();
   return (
     <div
       data-testid={`sidemenu-char-${char.id}`}
+      role="group"
+      aria-labelledby={nameId}
       {...(isCurrent ? { "aria-current": "true" } : {})}
       className={`p-2 rounded mb-2 text-sm ${
         isCurrent
@@ -80,7 +86,9 @@ function CharCard({
       }`}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="font-semibold truncate">{char.name}</span>
+        <span id={nameId} className="font-semibold truncate">
+          {char.name}
+        </span>
         {isCurrent && (
           <span aria-hidden="true" className="text-xs text-yellow-400 ml-1">
             ▶

@@ -64,6 +64,15 @@ describe("Phase 9 web: Lobby keyboard + a11y (§17)", () => {
     expect(form.contains(joinButton)).toBe(true);
   });
 
+  it("renders the create section as a form labeled by lobby.createRoom", () => {
+    renderLobby();
+    const form = screen.getByRole("form", { name: "ルームを作成" });
+    expect(form).toBeInTheDocument();
+    // Sanity: the player-name input lives inside the create form, not the join form.
+    const playerName = screen.getByTestId("lobby-player-name");
+    expect(form.contains(playerName)).toBe(true);
+  });
+
   it("disables the join button while the room ID is empty", () => {
     renderLobby();
     const button = screen.getByTestId(

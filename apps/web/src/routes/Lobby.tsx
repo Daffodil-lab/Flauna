@@ -42,7 +42,11 @@ export default function Lobby() {
       </h1>
       <h2 className="text-lg sm:text-xl">{t("lobby.title")}</h2>
 
-      <form onSubmit={handleCreate} className="flex flex-col gap-4 w-full max-w-sm">
+      <form
+        onSubmit={handleCreate}
+        className="flex flex-col gap-4 w-full max-w-sm"
+        aria-label={t("lobby.createRoom")}
+      >
         <label className="flex flex-col gap-1">
           <span>{t("lobby.scenarioId")}</span>
           <input

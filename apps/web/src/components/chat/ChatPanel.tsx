@@ -9,12 +9,16 @@ import type { ChatEntry } from "../../types";
 export const CHAT_PANEL_ID = "chatpanel-panel";
 
 function EntryRow({ entry }: { entry: ChatEntry }) {
+  const { t } = useTranslation();
+  // §17 a11y: speaker prefix was hard-coded English which screen readers in
+  // Japanese pronounced awkwardly ("ジー・エム"). Pull it from i18n so SR users
+  // hear the localized speaker label.
   const prefix =
     entry.kind === "gm_narrative"
-      ? "GM"
+      ? t("room.chat.speaker.gm")
       : entry.kind === "system"
-        ? "System"
-        : "You";
+        ? t("room.chat.speaker.system")
+        : t("room.chat.speaker.you");
   const color =
     entry.kind === "gm_narrative"
       ? "text-purple-300"

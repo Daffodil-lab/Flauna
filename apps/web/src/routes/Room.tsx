@@ -387,7 +387,17 @@ export default function Room() {
         }
         setAuth(playerId, playerToken);
 
-        const wsUrl = `ws://${window.location.host}/room/${roomId}`;
+        // §12-3 e2e: tests inject a mock WS server URL via either a build-time
+        // VITE_WS_URL env var or a runtime override on window so MockWSServer
+        // can pick a dynamic port per test. In production both are unset and
+        // we fall back to the page origin.
+        const runtimeOverride =
+          (window as unknown as { __VITE_WS_URL__?: string }).__VITE_WS_URL__;
+        const wsBase =
+          runtimeOverride ??
+          import.meta.env.VITE_WS_URL ??
+          `ws://${window.location.host}`;
+        const wsUrl = `${wsBase}/room/${roomId}`;
         const ws = new TacexWebSocket(wsUrl, handleMessage, (status) => {
           // Once SESSION_LOST is set, stop overwriting it with transient
           // socket-level status updates so the lost-session screen stays put.

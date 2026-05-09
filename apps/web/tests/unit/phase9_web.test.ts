@@ -53,6 +53,7 @@ import CastArtModal from "../../src/components/dialogs/CastArtModal";
 import CastArtCutscene from "../../src/components/dialogs/CastArtCutscene";
 import ToastContainer from "../../src/components/common/ToastContainer";
 import LanguageSwitcher from "../../src/components/common/LanguageSwitcher";
+import { parseChatCommand } from "../../src/utils/chatCommand";
 
 // react-konva relies on the canvas API which jsdom does not implement.
 // Mock it with light DOM shims so GameMap can render the §17 a11y surface.
@@ -5192,5 +5193,129 @@ describe("Phase 9 web: prefers-reduced-motion honoured (§17)", () => {
         myPlayerId: null,
       } as never);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §5-2-5 / §19 chat palette — `:HP-3` style command parser
+// ---------------------------------------------------------------------------
+
+describe("Phase 9 web: chat command parser (§5-2-5)", () => {
+  it("parses :HP-3 as a stat command", () => {
+    const r = parseChatCommand(":HP-3");
+    expect(r.kind).toBe("stat");
+    if (r.kind === "stat") {
+      expect(r.stat).toBe("HP");
+      expect(r.delta).toBe(-3);
+    }
+  });
+
+  it("parses :MP+1 with positive delta", () => {
+    const r = parseChatCommand(":MP+1");
+    expect(r.kind).toBe("stat");
+    if (r.kind === "stat") {
+      expect(r.stat).toBe("MP");
+      expect(r.delta).toBe(1);
+    }
+  });
+
+  it("accepts lowercase stat names", () => {
+    const r = parseChatCommand(":hp-2");
+    expect(r.kind).toBe("stat");
+    if (r.kind === "stat") {
+      expect(r.stat).toBe("HP");
+      expect(r.delta).toBe(-2);
+    }
+  });
+
+  it("trims surrounding whitespace before parsing", () => {
+    const r = parseChatCommand("  :HP-5  ");
+    expect(r.kind).toBe("stat");
+    if (r.kind === "stat") expect(r.delta).toBe(-5);
+  });
+
+  it("rejects zero delta as a command", () => {
+    const r = parseChatCommand(":HP+0");
+    expect(r.kind).toBe("text");
+  });
+
+  it("treats freeform sentences as plain text", () => {
+    const r = parseChatCommand("回避を試みる");
+    expect(r.kind).toBe("text");
+    expect(r.raw).toBe("回避を試みる");
+  });
+
+  it("rejects malformed commands (missing sign, extra tokens)", () => {
+    expect(parseChatCommand(":HP3").kind).toBe("text");
+    expect(parseChatCommand(":HP-3 hello").kind).toBe("text");
+    expect(parseChatCommand(":SP-3").kind).toBe("text");
+  });
+
+  it("rejects empty input", () => {
+    expect(parseChatCommand("").kind).toBe("text");
+    expect(parseChatCommand("   ").kind).toBe("text");
+  });
+});
+
+describe("Phase 9 web: ChatPanel palette hint (§5-2-5)", () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+    useChatStore.setState({ entries: [] });
+    useGameStore.setState({
+      gameState: {
+        room_id: "r",
+        version: 1,
+        seed: 1,
+        phase: "combat",
+        machine_state: "IDLE",
+        turn_order: [],
+        current_turn_index: 0,
+        round_number: 1,
+        characters: [],
+        map_size: [10, 10],
+        obstacles: [],
+        current_turn_summary: null,
+        pending_actions: [],
+      },
+    } as never);
+  });
+
+  afterEach(() => {
+    useChatStore.setState({ entries: [] });
+    useGameStore.setState({ gameState: null } as never);
+  });
+
+  function renderPanel() {
+    return render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(ChatPanel, { onSendStatement: () => {} }),
+      ),
+    );
+  }
+
+  it("ja and en expose the palette hint keys", () => {
+    expect(ja).toHaveProperty("room.chat.paletteHint");
+    expect(ja).toHaveProperty("room.chat.paletteHintLabel");
+    expect(en).toHaveProperty("room.chat.paletteHint");
+    expect(en).toHaveProperty("room.chat.paletteHintLabel");
+  });
+
+  it("renders the localized hint and links it via aria-describedby", () => {
+    renderPanel();
+    const hint = screen.getByTestId("chatpanel-palette-hint");
+    expect(hint.textContent).toBe("コマンド: :HP-3 / :MP+1");
+    const input = screen.getByTestId("chatpanel-input");
+    expect(input.getAttribute("aria-describedby")).toBe(hint.id);
+  });
+
+  it("switches the hint to English when language is en", async () => {
+    await i18n.changeLanguage("en");
+    renderPanel();
+    expect(screen.getByTestId("chatpanel-palette-hint").textContent).toBe(
+      "Commands: :HP-3 / :MP+1",
+    );
+    await i18n.changeLanguage("ja");
   });
 });

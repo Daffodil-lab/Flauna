@@ -174,22 +174,33 @@ export default function ChatPanel({ onSendStatement }: Props) {
         </button>
       )}
 
-      <div className="border-t border-gray-700 p-2 flex gap-2">
-        <input
-          className="flex-1 bg-gray-800 rounded px-2 py-1 text-sm text-white placeholder-gray-500 outline-none"
-          placeholder={t("room.messagePlaceholder")}
-          aria-label={t("room.chat.inputLabel")}
-          data-testid="chatpanel-input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        />
-        <button
-          onClick={handleSend}
-          className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+      <div className="border-t border-gray-700 p-2 flex flex-col gap-1">
+        <div className="flex gap-2">
+          <input
+            className="flex-1 bg-gray-800 rounded px-2 py-1 text-sm text-white placeholder-gray-500 outline-none"
+            placeholder={t("room.messagePlaceholder")}
+            aria-label={t("room.chat.inputLabel")}
+            aria-describedby="chatpanel-palette-hint"
+            data-testid="chatpanel-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          />
+          <button
+            onClick={handleSend}
+            className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+          >
+            {t("room.send")}
+          </button>
+        </div>
+        <p
+          id="chatpanel-palette-hint"
+          data-testid="chatpanel-palette-hint"
+          aria-label={t("room.chat.paletteHintLabel")}
+          className="text-xs text-gray-500"
         >
-          {t("room.send")}
-        </button>
+          {t("room.chat.paletteHint")}
+        </p>
       </div>
       </aside>
     </>

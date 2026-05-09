@@ -648,6 +648,66 @@ describe("Phase 9 integration: alert SE on interrupt events", () => {
   });
 });
 
+// §9-3: when the WebSocket gives up reconnecting we surface SessionLostScreen
+// over a frozen GameState. The BGM must be silenced so the alert isn't read
+// over a looping combat track. This was unit-tested at the hook level; covered
+// here end-to-end through the Room-style harness.
+describe("Phase 9 integration: SESSION_LOST stops BGM (§9-3)", () => {
+  function PhaseHarness({
+    phase,
+    connectionStatus,
+  }: {
+    phase: GamePhase | undefined;
+    connectionStatus?: "ACTIVE" | "DISCONNECTED" | "SESSION_LOST";
+  }) {
+    usePhaseBgm(phase, connectionStatus);
+    return null;
+  }
+
+  it("stops BGM when connectionStatus flips to SESSION_LOST mid-combat", () => {
+    const audio = installAudioSpy();
+    useGameStore.getState().applyStateFull(makeState({ phase: "combat" }));
+
+    const { rerender } = render(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "ACTIVE",
+      }),
+    );
+    expect(audio.bgm).toEqual(["combat"]);
+    const stopsBefore = audio.stops;
+
+    act(() => {
+      useGameStore.setState({ connectionStatus: "SESSION_LOST" });
+    });
+    rerender(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "SESSION_LOST",
+      }),
+    );
+
+    expect(audio.stops).toBeGreaterThan(stopsBefore);
+  });
+
+  it("does not start BGM if SESSION_LOST is already in effect at mount", () => {
+    const audio = installAudioSpy();
+    useGameStore
+      .getState()
+      .applyStateFull(makeState({ phase: "combat" }));
+    useGameStore.setState({ connectionStatus: "SESSION_LOST" });
+
+    render(
+      React.createElement(PhaseHarness, {
+        phase: "combat",
+        connectionStatus: "SESSION_LOST",
+      }),
+    );
+
+    expect(audio.bgm).toEqual([]);
+  });
+});
+
 describe("Phase 9 integration: language switch updates mounted dialogs", () => {
   it("re-renders CombatResultModal text when the language changes", async () => {
     installAudioSpy();

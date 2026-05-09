@@ -198,6 +198,8 @@ const en = {
   "room.chat.speaker.you": "You",
   "room.chat.paletteHint": "Commands: :HP-3 / :MP+1",
   "room.chat.paletteHintLabel": "Chat command syntax",
+  "room.chat.commandRecognized": "Recognized: {{stat}} {{delta}}",
+  "room.chat.commandRecognizedLabel": "Recognized as a command",
   "room.system.sessionRestored": "Session restored",
   "room.system.sessionDisconnected": "Session ended: {{reason}}",
   "room.system.combatVictory": "Combat ended: Victory!",

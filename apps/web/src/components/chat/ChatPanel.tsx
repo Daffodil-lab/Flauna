@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useChatStore, useGameStore, useUIStore } from "../../stores";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
+import { parseChatCommand } from "../../utils/chatCommand";
 import type { ChatEntry } from "../../types";
 
 // Spec §17 keeps the chat panel as a labelled landmark, with the id/aria-controls
@@ -193,6 +194,21 @@ export default function ChatPanel({ onSendStatement }: Props) {
             {t("room.send")}
           </button>
         </div>
+        {(() => {
+          const parsed = parseChatCommand(input);
+          if (parsed.kind !== "stat") return null;
+          const delta =
+            parsed.delta > 0 ? `+${parsed.delta}` : `${parsed.delta}`;
+          return (
+            <p
+              data-testid="chatpanel-command-chip"
+              aria-label={t("room.chat.commandRecognizedLabel")}
+              className="self-start text-xs px-2 py-0.5 rounded bg-blue-900/60 text-blue-200"
+            >
+              {t("room.chat.commandRecognized", { stat: parsed.stat, delta })}
+            </p>
+          );
+        })()}
         <p
           id="chatpanel-palette-hint"
           data-testid="chatpanel-palette-hint"

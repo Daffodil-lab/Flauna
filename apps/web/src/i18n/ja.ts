@@ -198,6 +198,8 @@ const ja = {
   "room.chat.speaker.you": "あなた",
   "room.chat.paletteHint": "コマンド: :HP-3 / :MP+1",
   "room.chat.paletteHintLabel": "チャットコマンドの書式",
+  "room.chat.commandRecognized": "認識: {{stat}} {{delta}}",
+  "room.chat.commandRecognizedLabel": "コマンドとして認識されました",
   "room.system.sessionRestored": "セッション復元",
   "room.system.sessionDisconnected": "セッション切断: {{reason}}",
   "room.system.combatVictory": "戦闘終了: 勝利！",

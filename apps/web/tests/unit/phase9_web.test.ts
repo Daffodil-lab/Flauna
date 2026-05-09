@@ -5318,4 +5318,41 @@ describe("Phase 9 web: ChatPanel palette hint (§5-2-5)", () => {
     );
     await i18n.changeLanguage("ja");
   });
+
+  it("shows the recognized-command chip while typing :HP-3", () => {
+    renderPanel();
+    expect(screen.queryByTestId("chatpanel-command-chip")).toBeNull();
+    const input = screen.getByTestId("chatpanel-input");
+    fireEvent.change(input, { target: { value: ":HP-3" } });
+    const chip = screen.getByTestId("chatpanel-command-chip");
+    expect(chip.textContent).toBe("認識: HP -3");
+    expect(chip.getAttribute("aria-label")).toBe("コマンドとして認識されました");
+  });
+
+  it("renders +N for positive deltas like :MP+1", () => {
+    renderPanel();
+    const input = screen.getByTestId("chatpanel-input");
+    fireEvent.change(input, { target: { value: ":MP+1" } });
+    expect(screen.getByTestId("chatpanel-command-chip").textContent).toBe(
+      "認識: MP +1",
+    );
+  });
+
+  it("hides the chip for plain text input", () => {
+    renderPanel();
+    const input = screen.getByTestId("chatpanel-input");
+    fireEvent.change(input, { target: { value: "回避を試みる" } });
+    expect(screen.queryByTestId("chatpanel-command-chip")).toBeNull();
+  });
+
+  it("localizes the chip when language switches to en", async () => {
+    await i18n.changeLanguage("en");
+    renderPanel();
+    const input = screen.getByTestId("chatpanel-input");
+    fireEvent.change(input, { target: { value: ":HP-3" } });
+    expect(screen.getByTestId("chatpanel-command-chip").textContent).toBe(
+      "Recognized: HP -3",
+    );
+    await i18n.changeLanguage("ja");
+  });
 });

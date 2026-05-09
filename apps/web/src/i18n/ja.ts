@@ -196,6 +196,8 @@ const ja = {
   "room.chat.speaker.gm": "GM",
   "room.chat.speaker.system": "システム",
   "room.chat.speaker.you": "あなた",
+  "room.chat.paletteHint": "コマンド: :HP-3 / :MP+1",
+  "room.chat.paletteHintLabel": "チャットコマンドの書式",
   "room.system.sessionRestored": "セッション復元",
   "room.system.sessionDisconnected": "セッション切断: {{reason}}",
   "room.system.combatVictory": "戦闘終了: 勝利！",

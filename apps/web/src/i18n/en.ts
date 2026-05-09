@@ -196,6 +196,8 @@ const en = {
   "room.chat.speaker.gm": "GM",
   "room.chat.speaker.system": "System",
   "room.chat.speaker.you": "You",
+  "room.chat.paletteHint": "Commands: :HP-3 / :MP+1",
+  "room.chat.paletteHintLabel": "Chat command syntax",
   "room.system.sessionRestored": "Session restored",
   "room.system.sessionDisconnected": "Session ended: {{reason}}",
   "room.system.combatVictory": "Combat ended: Victory!",

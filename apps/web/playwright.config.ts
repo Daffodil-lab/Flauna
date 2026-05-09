@@ -10,7 +10,9 @@ export default defineConfig({
   timeout: 30_000,
   fullyParallel: false,
   retries: isCI ? 2 : 1,
-  workers: isCI ? 2 : 1,
+  // Single worker in CI: the headless Chrome / dev-server combo flakes when
+  // 2 workers race over the same vite preview port + MockWSServer state.
+  workers: 1,
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: "http://localhost:5173",

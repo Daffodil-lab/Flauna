@@ -372,7 +372,9 @@ describe("Phase 9 integration: art_cast event → cutscene + SE + chat", () => {
     const overlay = screen.getByTestId("cast-art-cutscene");
     expect(within(overlay).getByText("霊弾発射")).toBeTruthy();
     expect(within(overlay).getByText("茜")).toBeTruthy();
-    expect(audio.se).toEqual(["cast_art"]);
+    // Phase 9 §11: cast_art SE is fired from Room.tsx on art_cast, and the
+    // cutin SE rides on the cutscene overlay mount for atmosphere.
+    expect(audio.se).toEqual(["cast_art", "cutin"]);
     expect(useChatStore.getState().entries.at(-1)?.text).toContain("霊弾発射");
 
     act(() => {

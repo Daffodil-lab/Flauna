@@ -409,7 +409,11 @@ export default function Room() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
-  usePhaseBgm(gameState?.phase, connectionStatus);
+  usePhaseBgm(
+    gameState?.phase,
+    connectionStatus,
+    gameState?.assessment_result?.outcome ?? null,
+  );
   useTurnStartSe(gameState, myPlayerId);
 
   const online = useOnlineStatus();

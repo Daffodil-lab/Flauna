@@ -1421,13 +1421,15 @@ describe("Phase 9 web: ChatPanel keyboard + a11y (§17)", () => {
     expect(input.getAttribute("aria-label")).toBe("メッセージ入力");
   });
 
-  it("submits the message on Enter (existing behavior preserved)", () => {
+  it("submits the message on Enter (default scope=all)", () => {
     const onSend = vi.fn();
     renderPanel(onSend);
     const input = screen.getByTestId("chatpanel-input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "hello" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(onSend).toHaveBeenCalledWith("hello");
+    // §5-2-5 ChatPanel forwards (text, scope, toPlayerId) — default scope is
+    // "all", recipient is null for non-whisper.
+    expect(onSend).toHaveBeenCalledWith("hello", "all", null);
   });
 });
 

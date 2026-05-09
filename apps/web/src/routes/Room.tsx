@@ -49,6 +49,7 @@ import type {
   DeathAvoidancePending,
   DeathAvoidanceChoice,
   CastArtPayload,
+  ChatScope,
 } from "../types";
 import type { ServerMessage } from "@flauna/ws-schema";
 import {
@@ -167,7 +168,21 @@ export default function Room() {
           break;
         }
         case "gm_narrative": {
-          updateLastNarrative(msg.text, msg.is_streaming ?? false);
+          // §5-2-5 narrative scope: optional fields (default "all"). Whisper
+          // narratives addressed to a different player are dropped client-side.
+          const narrativeScope = (msg.scope ?? "all") as ChatScope;
+          const narrativeTo = msg.to_player_id ?? null;
+          if (
+            narrativeScope === "whisper" &&
+            narrativeTo &&
+            narrativeTo !== myPlayerId
+          ) {
+            break;
+          }
+          updateLastNarrative(msg.text, msg.is_streaming ?? false, {
+            scope: narrativeScope,
+            toPlayerId: narrativeTo,
+          });
           break;
         }
         case "event": {
@@ -456,16 +471,23 @@ export default function Room() {
   }, [gameState, myPlayerId, sendTurnAction]);
 
   const handleSendStatement = useCallback(
-    (text: string) => {
+    (text: string, scope: ChatScope = "all", toPlayerId?: string | null) => {
       if (!gameState || !myPlayerId) return;
+      const effectiveTo = scope === "whisper" ? (toPlayerId ?? null) : null;
       sendWs({
         action: "player_statement",
         player_id: myPlayerId,
         room_id: gameState.room_id,
         client_request_id: nanoid(),
         text,
+        scope,
+        to_player_id: effectiveTo,
       });
-      addEntry("player_statement", text);
+      addEntry("player_statement", text, undefined, undefined, {
+        scope,
+        toPlayerId: effectiveTo,
+        fromPlayerId: myPlayerId,
+      });
     },
     [gameState, myPlayerId, sendWs, addEntry],
   );
@@ -654,7 +676,10 @@ export default function Room() {
           <QuickActionBar onEndTurn={handleEndTurn} />
         </main>
 
-        <ChatPanel onSendStatement={handleSendStatement} />
+        <ChatPanel
+          onSendStatement={handleSendStatement}
+          myPlayerId={myPlayerId}
+        />
       </div>
 
       <ContextMenu

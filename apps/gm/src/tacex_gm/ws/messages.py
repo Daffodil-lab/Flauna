@@ -50,6 +50,11 @@ class PlayerStatement(BaseModel):
     room_id: str
     client_request_id: str
     text: str
+    # §5-2-5 chat scope. Optional with default "all" so older clients/servers
+    # remain compatible. "whisper" requires `to_player_id` to identify the
+    # recipient; for "all" / "party" the field is null.
+    scope: Literal["all", "party", "whisper"] = "all"
+    to_player_id: str | None = None
 
 
 ClientMessage = Annotated[
@@ -94,6 +99,10 @@ class GmNarrative(BaseModel):
     timestamp: str
     text: str
     is_streaming: bool = False
+    # §5-2-5 narrative scope, mirroring PlayerStatement so the chat panel can
+    # filter by tab. Optional / defaults to "all" for back-compat.
+    scope: Literal["all", "party", "whisper"] = "all"
+    to_player_id: str | None = None
 
 
 class GameEventMessage(BaseModel):

@@ -181,6 +181,10 @@ export interface DeathAvoidancePending {
 }
 
 export type ChatKind = "gm_narrative" | "player_statement" | "system";
+// §5-2-5 chat scope. Default "all" for back-compat; "whisper" carries a
+// recipient player id; "party" is shared with PCs only (system messages are
+// always "all").
+export type ChatScope = "all" | "party" | "whisper";
 
 export interface ChatEntry {
   id: string;
@@ -188,6 +192,11 @@ export interface ChatEntry {
   text: string;
   timestamp: string;
   isStreaming?: boolean;
+  scope?: ChatScope;
+  toPlayerId?: string | null;
+  // For "whisper" entries we also need to know the speaker so the chat panel
+  // can render only messages the current viewer is authorised to see.
+  fromPlayerId?: string | null;
 }
 
 export interface TurnAction {

@@ -1,4 +1,50 @@
 import { create } from "zustand";
+import type { ChatScope } from "../types";
+
+// §5-2-5 chat tab filter. "all_tabs" shows every entry regardless of scope;
+// the other values mirror ChatScope. Persisted in localStorage so the user's
+// last-used tab survives reloads (matches the audioStore persistence pattern).
+export type ChatTabFilter = "all_tabs" | ChatScope;
+const CHAT_UI_STORAGE_KEY = "flauna.chatUi.v1";
+interface PersistedChatUi {
+  chatScope: ChatScope;
+  chatTabFilter: ChatTabFilter;
+}
+const DEFAULT_CHAT_UI: PersistedChatUi = {
+  chatScope: "all",
+  chatTabFilter: "all_tabs",
+};
+
+function loadPersistedChatUi(): PersistedChatUi {
+  if (typeof window === "undefined") return DEFAULT_CHAT_UI;
+  try {
+    const raw = window.localStorage.getItem(CHAT_UI_STORAGE_KEY);
+    if (!raw) return DEFAULT_CHAT_UI;
+    const parsed = JSON.parse(raw) as Partial<PersistedChatUi>;
+    const scope: ChatScope =
+      parsed.chatScope === "party" || parsed.chatScope === "whisper"
+        ? parsed.chatScope
+        : "all";
+    const filter: ChatTabFilter =
+      parsed.chatTabFilter === "party" ||
+      parsed.chatTabFilter === "whisper" ||
+      parsed.chatTabFilter === "all"
+        ? parsed.chatTabFilter
+        : "all_tabs";
+    return { chatScope: scope, chatTabFilter: filter };
+  } catch {
+    return DEFAULT_CHAT_UI;
+  }
+}
+
+function persistChatUi(state: PersistedChatUi): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CHAT_UI_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore quota / privacy-mode errors
+  }
+}
 
 type ActiveModal =
   | "evasion"
@@ -52,6 +98,10 @@ interface UIStore {
   chatPanelOpen: boolean;
   /** Phase 9 UX (§9-2): "GM考え中" banner state, null when idle. */
   aiThinking: AiThinkingIndicatorState | null;
+  /** §5-2-5 send-target scope picked in the chat panel. */
+  chatScope: ChatScope;
+  /** §5-2-5 receive-side filter (which tab is active). */
+  chatTabFilter: ChatTabFilter;
 
   setMapZoom: (zoom: number) => void;
   setSelectedChar: (id: string | null) => void;
@@ -71,7 +121,11 @@ interface UIStore {
   closeMobilePanels: () => void;
   setAiThinking: (stage: string, actorId: string | null) => void;
   clearAiThinking: () => void;
+  setChatScope: (scope: ChatScope) => void;
+  setChatTabFilter: (filter: ChatTabFilter) => void;
 }
+
+const __initialChatUi = loadPersistedChatUi();
 
 export const useUIStore = create<UIStore>()((set) => ({
   mapZoom: 40,
@@ -87,6 +141,8 @@ export const useUIStore = create<UIStore>()((set) => ({
   sideMenuOpen: false,
   chatPanelOpen: false,
   aiThinking: null,
+  chatScope: __initialChatUi.chatScope,
+  chatTabFilter: __initialChatUi.chatTabFilter,
 
   setMapZoom: (zoom) => set({ mapZoom: Math.min(64, Math.max(30, zoom)) }),
   setSelectedChar: (id) => set({ selectedCharId: id }),
@@ -115,4 +171,16 @@ export const useUIStore = create<UIStore>()((set) => ({
   setAiThinking: (stage, actorId) =>
     set({ aiThinking: { stage, actorId, receivedAt: Date.now() } }),
   clearAiThinking: () => set({ aiThinking: null }),
+  setChatScope: (scope) =>
+    set((s) => {
+      persistChatUi({ chatScope: scope, chatTabFilter: s.chatTabFilter });
+      return { chatScope: scope };
+    }),
+  setChatTabFilter: (filter) =>
+    set((s) => {
+      persistChatUi({ chatScope: s.chatScope, chatTabFilter: filter });
+      return { chatTabFilter: filter };
+    }),
 }));
+
+export const __CHAT_UI_STORAGE_KEY = CHAT_UI_STORAGE_KEY;

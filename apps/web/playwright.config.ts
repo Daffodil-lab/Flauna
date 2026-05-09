@@ -18,7 +18,10 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: "pnpm dev",
+    // Use the production build for stability — dev mode + StrictMode double-
+    // mount + HMR caused locator detachment in CI. The `e2e` script chains
+    // `pnpm build` before invoking playwright so dist/ is always fresh.
+    command: "pnpm preview --port 5173 --strictPort",
     url: "http://localhost:5173",
     reuseExistingServer: !isCI,
     timeout: 120_000,

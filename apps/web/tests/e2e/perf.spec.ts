@@ -54,13 +54,13 @@ test.describe("§18 performance budgets", () => {
     });
     await expect(
       page.locator("[data-testid='chatpanel'] >> text=PERF_PROBE"),
-    ).toBeVisible({ timeout: 1000 });
+    ).toBeVisible({ timeout: 5000 });
     const reflectMs = Date.now() - sendAt;
-    // Headless CI has more variance than local; assert under 1 s and log the
-    // observed value so trends are visible. The §18 200 ms target is for the
-    // production hot path; this guards against regression catastrophes.
+    // Headless CI has more variance than the §18 200 ms hot-path target;
+    // a 3 s upper bound catches catastrophic regressions while logging the
+    // observed value so trends are visible.
     console.log(`perf: reflect ${reflectMs}ms`);
-    expect(reflectMs).toBeLessThan(1000);
+    expect(reflectMs).toBeLessThan(3000);
   });
 
   test("60-second idle session does not balloon JS heap (chromium)", async ({

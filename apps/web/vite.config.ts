@@ -31,17 +31,21 @@ export default defineConfig({
     },
   },
   build: {
-    // §18 keeps total gzip bundle under 800 KB. Splitting Konva, framer-motion,
-    // react, and zustand into vendor chunks brings the main chunk well below
-    // Vite's 500 KB warning threshold and lets the browser parallelise loads.
+    // §18 keeps total gzip bundle under 800 KB. Konva is by far the heaviest
+    // dependency (~290 KB raw / ~89 KB gzip) and is only loaded once a Room
+    // is mounted, so split it out so the lobby paint isn't blocked on it.
+    // Other React-flavoured deps (react/jsx-runtime, react-i18next, framer
+    // -motion) are deliberately kept in the main chunk to avoid module-graph
+    // ordering pitfalls that surfaced as a NO_FCP under Lighthouse CI.
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          konva: ["konva", "react-konva"],
-          motion: ["framer-motion"],
-          state: ["zustand", "zod"],
-          i18n: ["i18next", "react-i18next"],
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("/konva/") || id.includes("/react-konva/")) {
+              return "konva";
+            }
+          }
+          return undefined;
         },
       },
     },

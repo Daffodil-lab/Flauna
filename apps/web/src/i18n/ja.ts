@@ -124,6 +124,7 @@ const ja = {
   "room.map.damageRegion": "ダメージログ",
   "room.map.damageItem": "{{name}}に{{amount}}ダメージ",
   "room.main.label": "プレイエリア",
+  "room.main.skipLink": "プレイエリアへスキップ",
   "combat.victory": "勝利！",
   "combat.defeat": "敗北…",
   "combat.victoryMsg": "全ての敵を倒した。任務完了だ。",

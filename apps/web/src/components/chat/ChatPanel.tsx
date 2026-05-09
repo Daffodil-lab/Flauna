@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useChatStore, useGameStore, useUIStore } from "../../stores";
+import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
 import type { ChatEntry } from "../../types";
 
 // Spec §17 keeps the chat panel as a labelled landmark, with the id/aria-controls
@@ -60,8 +61,11 @@ export default function ChatPanel({ onSendStatement }: Props) {
   const [input, setInput] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
   const lastSeenIdRef = useRef<string | null>(null);
+  // §17 a11y: drop smooth scroll when the user requested reduced motion.
+  const reducedMotion = usePrefersReducedMotion();
+  const defaultScrollBehavior: ScrollBehavior = reducedMotion ? "auto" : "smooth";
 
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+  const scrollToBottom = (behavior: ScrollBehavior = defaultScrollBehavior) => {
     bottomRef.current?.scrollIntoView({ behavior });
     stickToBottomRef.current = true;
     setUnreadCount(0);
@@ -76,7 +80,7 @@ export default function ChatPanel({ onSendStatement }: Props) {
       return;
     }
     if (stickToBottomRef.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      bottomRef.current?.scrollIntoView({ behavior: defaultScrollBehavior });
       lastSeenIdRef.current = latest.id;
       setUnreadCount(0);
       return;
@@ -88,7 +92,7 @@ export default function ChatPanel({ onSendStatement }: Props) {
     }
     const seenIdx = entries.findIndex((e) => e.id === lastSeen);
     setUnreadCount(seenIdx === -1 ? entries.length : entries.length - 1 - seenIdx);
-  }, [entries]);
+  }, [entries, defaultScrollBehavior]);
 
   const handleScroll = () => {
     const el = scrollRef.current;

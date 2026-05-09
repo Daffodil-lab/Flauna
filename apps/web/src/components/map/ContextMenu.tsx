@@ -18,6 +18,9 @@ export default function ContextMenu({
   const { gameState } = useGameStore();
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // §17 a11y: remember whoever opened the menu so we can put focus back when
+  // it closes — otherwise keyboard users get stranded on <body> after Esc.
+  const openerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!contextMenuCharId) return;
@@ -30,13 +33,26 @@ export default function ContextMenu({
     return () => document.removeEventListener("mousedown", handler);
   }, [closeContextMenu, contextMenuCharId]);
 
-  // §17 a11y: focus the first menuitem when the menu opens (roving tabindex).
+  // §17 a11y: focus the first menuitem when the menu opens (roving tabindex),
+  // and restore focus to the opener once the menu unmounts.
   useEffect(() => {
     if (!contextMenuCharId) return;
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    openerRef.current = opener;
     const items = ref.current?.querySelectorAll<HTMLButtonElement>(
       "[role='menuitem']",
     );
     items?.[0]?.focus();
+    return () => {
+      const target = openerRef.current;
+      openerRef.current = null;
+      if (target && document.contains(target)) {
+        target.focus();
+      }
+    };
   }, [contextMenuCharId]);
 
   if (!contextMenuCharId || !contextMenuPos) return null;

@@ -4851,3 +4851,346 @@ describe("Phase 9 web: DeathAvoidanceDialog choices radiogroup (§17)", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// §17 skip link i18n key (Room <main>)
+// ---------------------------------------------------------------------------
+
+describe("Phase 9 web: skip-to-main link i18n (§17)", () => {
+  it("ja and en expose the room.main.skipLink key", () => {
+    expect(ja).toHaveProperty("room.main.skipLink");
+    expect(en).toHaveProperty("room.main.skipLink");
+  });
+
+  it("ja and en values are non-empty strings", () => {
+    expect(typeof ja["room.main.skipLink"]).toBe("string");
+    expect(typeof en["room.main.skipLink"]).toBe("string");
+    expect(ja["room.main.skipLink"].length).toBeGreaterThan(0);
+    expect(en["room.main.skipLink"].length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §17 ContextMenu — restore focus to opener on close
+// ---------------------------------------------------------------------------
+
+describe("Phase 9 web: ContextMenu opener focus return (§17)", () => {
+  function makeChar(): Character {
+    return {
+      id: "e1",
+      name: "怨霊武者",
+      player_id: null,
+      faction: "enemy",
+      is_boss: false,
+      tai: 0,
+      rei: 0,
+      kou: 0,
+      jutsu: 0,
+      max_hp: 10,
+      max_mp: 10,
+      hp: 10,
+      mp: 10,
+      mobility: 3,
+      evasion_dice: 0,
+      max_evasion_dice: 0,
+      position: [0, 0],
+      equipped_weapons: [],
+      equipped_jacket: null,
+      armor_value: 0,
+      inventory: {},
+      skills: [],
+      arts: [],
+      status_effects: [],
+      has_acted_this_turn: false,
+      movement_used_this_turn: 0,
+      first_move_mode: null,
+    };
+  }
+
+  beforeEach(async () => {
+    await i18n.changeLanguage("ja");
+    useGameStore.setState({
+      gameState: { characters: [makeChar()] } as unknown as GameState,
+      myPlayerId: "p1",
+    } as never);
+    useUIStore.setState({
+      contextMenuCharId: null,
+      contextMenuPos: null,
+    } as never);
+  });
+
+  afterEach(() => {
+    useUIStore.setState({
+      contextMenuCharId: null,
+      contextMenuPos: null,
+    } as never);
+    useGameStore.setState({ gameState: null, myPlayerId: null } as never);
+  });
+
+  it("restores focus to the element that opened the menu after closeContextMenu", () => {
+    const opener = document.createElement("button");
+    opener.setAttribute("data-testid", "test-opener");
+    opener.textContent = "open menu";
+    document.body.appendChild(opener);
+    try {
+      opener.focus();
+      expect(document.activeElement).toBe(opener);
+
+      render(
+        React.createElement(
+          I18nextProvider,
+          { i18n },
+          React.createElement(ContextMenu, {
+            onAttack: vi.fn(),
+            onDetailAttack: vi.fn(),
+            onCastArt: vi.fn(),
+          }),
+        ),
+      );
+
+      // Open the menu — autofocus should leave the opener.
+      act(() => {
+        useUIStore.setState({
+          contextMenuCharId: "e1",
+          contextMenuPos: { x: 0, y: 0 },
+        } as never);
+      });
+      expect(document.activeElement).not.toBe(opener);
+
+      // Close the menu — focus should return to the opener.
+      act(() => {
+        useUIStore.getState().closeContextMenu();
+      });
+      expect(document.activeElement).toBe(opener);
+    } finally {
+      document.body.removeChild(opener);
+    }
+  });
+
+  it("does not throw if the opener has been removed from the DOM by close time", () => {
+    const opener = document.createElement("button");
+    document.body.appendChild(opener);
+    opener.focus();
+
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(ContextMenu, {
+          onAttack: vi.fn(),
+          onDetailAttack: vi.fn(),
+          onCastArt: vi.fn(),
+        }),
+      ),
+    );
+
+    act(() => {
+      useUIStore.setState({
+        contextMenuCharId: "e1",
+        contextMenuPos: { x: 0, y: 0 },
+      } as never);
+    });
+
+    // Detach the opener before closing — the cleanup must not crash.
+    document.body.removeChild(opener);
+
+    expect(() => {
+      act(() => {
+        useUIStore.getState().closeContextMenu();
+      });
+    }).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §17 prefers-reduced-motion — CastArtCutscene + ChatPanel scroll
+// ---------------------------------------------------------------------------
+
+describe("Phase 9 web: prefers-reduced-motion honoured (§17)", () => {
+  type MQL = {
+    matches: boolean;
+    media: string;
+    addEventListener: (type: string, cb: (e: MediaQueryListEvent) => void) => void;
+    removeEventListener: (type: string, cb: (e: MediaQueryListEvent) => void) => void;
+    addListener: (cb: (e: MediaQueryListEvent) => void) => void;
+    removeListener: (cb: (e: MediaQueryListEvent) => void) => void;
+    dispatchEvent: (e: Event) => boolean;
+    onchange: null;
+  };
+
+  let originalMatchMedia: typeof window.matchMedia | undefined;
+
+  function installMatchMedia(reduce: boolean) {
+    originalMatchMedia = window.matchMedia;
+    const make = (query: string): MQL => ({
+      matches:
+        reduce && query === "(prefers-reduced-motion: reduce)"
+          ? true
+          : false,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+      onchange: null,
+    });
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      writable: true,
+      value: (query: string) => make(query) as unknown as MediaQueryList,
+    });
+  }
+
+  afterEach(() => {
+    if (originalMatchMedia !== undefined) {
+      Object.defineProperty(window, "matchMedia", {
+        configurable: true,
+        writable: true,
+        value: originalMatchMedia,
+      });
+    } else {
+      // jsdom default: not present at all.
+      // @ts-expect-error — best-effort restore in jsdom.
+      delete window.matchMedia;
+    }
+    originalMatchMedia = undefined;
+  });
+
+  it("CastArtCutscene drops animate-pulse when reduce is preferred", () => {
+    installMatchMedia(true);
+    useUIStore.setState({
+      castArtCutscene: {
+        id: "c-reduce",
+        artName: "霊弾発射",
+        casterName: "茜",
+      },
+    } as never);
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(CastArtCutscene),
+      ),
+    );
+    const overlay = screen.getByTestId("cast-art-cutscene");
+    const decorative = overlay.querySelector(
+      '[data-reduced-motion="true"]',
+    );
+    expect(decorative).toBeTruthy();
+    const pulses = overlay.querySelectorAll(".animate-pulse");
+    expect(pulses.length).toBe(0);
+    useUIStore.setState({ castArtCutscene: null } as never);
+  });
+
+  it("CastArtCutscene keeps animate-pulse when reduce is NOT preferred", () => {
+    installMatchMedia(false);
+    useUIStore.setState({
+      castArtCutscene: {
+        id: "c-allow",
+        artName: "霊弾発射",
+        casterName: "茜",
+      },
+    } as never);
+    render(
+      React.createElement(
+        I18nextProvider,
+        { i18n },
+        React.createElement(CastArtCutscene),
+      ),
+    );
+    const overlay = screen.getByTestId("cast-art-cutscene");
+    expect(overlay.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+    useUIStore.setState({ castArtCutscene: null } as never);
+  });
+
+  it("ChatPanel scrollIntoView uses behavior=auto under reduce", () => {
+    installMatchMedia(true);
+    useGameStore.setState({
+      gameState: { characters: [], turn_order: [] } as unknown as GameState,
+      myPlayerId: "p1",
+    } as never);
+    useChatStore.setState({ entries: [] } as never);
+
+    const spy = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+    try {
+      render(
+        React.createElement(
+          I18nextProvider,
+          { i18n },
+          React.createElement(ChatPanel, { onSendStatement: () => {} }),
+        ),
+      );
+
+      act(() => {
+        useChatStore.setState({
+          entries: [
+            {
+              id: "e-reduce",
+              kind: "system",
+              text: "hello",
+              isStreaming: false,
+            },
+          ],
+        } as never);
+      });
+
+      const calls = spy.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      const last = calls[calls.length - 1]?.[0] as ScrollIntoViewOptions;
+      expect(last.behavior).toBe("auto");
+    } finally {
+      spy.mockRestore();
+      useChatStore.setState({ entries: [] } as never);
+      useGameStore.setState({
+        gameState: null,
+        myPlayerId: null,
+      } as never);
+    }
+  });
+
+  it("ChatPanel scrollIntoView uses behavior=smooth without reduce", () => {
+    installMatchMedia(false);
+    useGameStore.setState({
+      gameState: { characters: [], turn_order: [] } as unknown as GameState,
+      myPlayerId: "p1",
+    } as never);
+    useChatStore.setState({ entries: [] } as never);
+
+    const spy = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+    try {
+      render(
+        React.createElement(
+          I18nextProvider,
+          { i18n },
+          React.createElement(ChatPanel, { onSendStatement: () => {} }),
+        ),
+      );
+
+      act(() => {
+        useChatStore.setState({
+          entries: [
+            {
+              id: "e-smooth",
+              kind: "system",
+              text: "hello",
+              isStreaming: false,
+            },
+          ],
+        } as never);
+      });
+
+      const calls = spy.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      const last = calls[calls.length - 1]?.[0] as ScrollIntoViewOptions;
+      expect(last.behavior).toBe("smooth");
+    } finally {
+      spy.mockRestore();
+      useChatStore.setState({ entries: [] } as never);
+      useGameStore.setState({
+        gameState: null,
+        myPlayerId: null,
+      } as never);
+    }
+  });
+});

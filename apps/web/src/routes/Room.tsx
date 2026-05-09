@@ -622,6 +622,15 @@ export default function Room() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white overflow-hidden">
+      {/* §17 a11y: standard skip link so keyboard / SR users can bypass the
+          header and side panels straight to the play area. Hidden until focused. */}
+      <a
+        href="#room-main"
+        data-testid="skip-to-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-blue-600 focus:px-3 focus:py-1 focus:text-white"
+      >
+        {t("room.main.skipLink")}
+      </a>
       <Header />
 
       <div className="flex flex-1 overflow-hidden">
@@ -630,9 +639,11 @@ export default function Room() {
         {/* Spec §17: the central play surface is the page's <main> landmark
             so SR users can jump straight to it past the banner/aside chrome. */}
         <main
+          id="room-main"
+          tabIndex={-1}
           aria-label={t("room.main.label")}
           data-testid="room-main"
-          className="relative flex flex-col flex-1 overflow-hidden"
+          className="relative flex flex-col flex-1 overflow-hidden focus:outline-none"
         >
           <AiThinkingIndicator />
           <GameMap onCharRightClick={handleCharRightClick} />

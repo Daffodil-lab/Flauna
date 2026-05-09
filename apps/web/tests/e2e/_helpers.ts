@@ -46,7 +46,10 @@ export async function stubApiForRoom(
 
 /**
  * Boot a smoke scenario and navigate the page directly into a room. Returns
- * once the chat panel is visible (proxy for "session restored").
+ * once the WebSocket is fully established and the initial state has been
+ * reflected in the chat log — broadcasting before this point is racy because
+ * `<ChatPanel>` is rendered unconditionally so `toBeVisible` can pass before
+ * the socket is even open.
  */
 export async function gotoSmokeRoom(
   page: Page,
@@ -55,13 +58,19 @@ export async function gotoSmokeRoom(
 ): Promise<void> {
   installSmokeOneTurnScenario(server);
   await stubApiForRoom(page, { roomId });
-  // Inject the WS URL before any app code runs so the websocket layer reads it.
   await page.addInitScript((wsUrl) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as Record<string, unknown>).__VITE_WS_URL__ = wsUrl;
-    // Pre-fill the lobby state Room.tsx expects (sessionStorage path).
     window.localStorage.setItem("flauna.playerName", "アリス");
   }, server.url());
   await page.goto(`/room/${roomId}`);
   await expect(page.getByTestId("chatpanel")).toBeVisible({ timeout: 15_000 });
+  // Make sure the WS handshake actually happened before tests broadcast.
+  await server.expectClientMessage((m) => m.action === "join_room", 10_000);
+  // The smoke scenario logs a system entry once session_restore lands
+  // client-side; wait for at least one rendered chat row so subsequent
+  // broadcasts race against a settled connection.
+  await page
+    .locator("[data-testid='chatpanel'] [data-scope]")
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
 }

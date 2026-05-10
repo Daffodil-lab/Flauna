@@ -36,6 +36,8 @@ export type PlayerId4 = string;
 export type RoomId4 = string;
 export type ClientRequestId3 = string;
 export type Text = string;
+export type Scope = "all" | "party" | "whisper";
+export type ToPlayerId = string | null;
 
 export interface JoinRoom {
   action: Action;
@@ -77,6 +79,8 @@ export interface PlayerStatement {
   room_id: RoomId4;
   client_request_id: ClientRequestId3;
   text: Text;
+  scope?: Scope;
+  to_player_id?: ToPlayerId;
 }
 
 /* eslint-disable */
@@ -121,6 +125,8 @@ export type EventId3 = number;
 export type Timestamp3 = string;
 export type Text = string;
 export type IsStreaming = boolean;
+export type Scope = "all" | "party" | "whisper";
+export type ToPlayerId = string | null;
 export type Type4 = "event";
 export type EventId4 = number;
 export type Timestamp4 = string;
@@ -199,6 +205,8 @@ export interface GmNarrative {
   timestamp: Timestamp3;
   text: Text;
   is_streaming?: IsStreaming;
+  scope?: Scope;
+  to_player_id?: ToPlayerId;
 }
 export interface GameEventMessage {
   type: Type4;

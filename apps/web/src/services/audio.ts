@@ -18,7 +18,10 @@ export type SeCue =
   | "your_turn"
   | "evade_alert"
   | "death_avoidance_alert"
-  | "deadline_tick";
+  | "deadline_tick"
+  | "cutin"
+  | "battle_start"
+  | "victory_jingle";
 
 export type BgmCue = "combat" | "exploration";
 
@@ -35,22 +38,29 @@ interface AudioBackend {
   setBgmVolume?(volume: number): void;
 }
 
-/** Map of cue → asset URL. Empty values mean "no asset bundled yet". */
+/**
+ * Map of cue → asset URL, served from `public/assets/audio/`. Files are
+ * placeholder silence (~1 KB each) so playback wiring is exercised in CI;
+ * production audio is dropped in by replacing the file at the same path.
+ */
 const SE_URLS: Record<SeCue, string> = {
-  damage: "",
-  victory: "",
-  defeat: "",
-  cast_art: "",
-  escalation: "",
-  your_turn: "",
-  evade_alert: "",
-  death_avoidance_alert: "",
-  deadline_tick: "",
+  damage: "/assets/audio/se/damage.wav",
+  victory: "/assets/audio/se/victory.wav",
+  defeat: "/assets/audio/se/defeat.wav",
+  cast_art: "/assets/audio/se/cast_art.wav",
+  escalation: "/assets/audio/se/escalation.wav",
+  your_turn: "/assets/audio/se/your_turn.wav",
+  evade_alert: "/assets/audio/se/evade_alert.wav",
+  death_avoidance_alert: "/assets/audio/se/death_avoidance_alert.wav",
+  deadline_tick: "/assets/audio/se/deadline_tick.wav",
+  cutin: "/assets/audio/se/cutin.wav",
+  battle_start: "/assets/audio/se/battle_start.wav",
+  victory_jingle: "/assets/audio/se/victory_jingle.wav",
 };
 
 const BGM_URLS: Record<BgmCue, string> = {
-  combat: "",
-  exploration: "",
+  combat: "/assets/audio/bgm/combat.wav",
+  exploration: "/assets/audio/bgm/exploration.wav",
 };
 
 class HtmlAudioBackend implements AudioBackend {

@@ -283,6 +283,28 @@
           "default": false,
           "title": "Is Streaming",
           "type": "boolean"
+        },
+        "scope": {
+          "default": "all",
+          "enum": [
+            "all",
+            "party",
+            "whisper"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "to_player_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To Player Id"
         }
       },
       "required": [

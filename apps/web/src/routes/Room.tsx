@@ -49,6 +49,7 @@ import type {
   DeathAvoidancePending,
   DeathAvoidanceChoice,
   CastArtPayload,
+  ChatScope,
 } from "../types";
 import type { ServerMessage } from "@flauna/ws-schema";
 import {
@@ -167,7 +168,21 @@ export default function Room() {
           break;
         }
         case "gm_narrative": {
-          updateLastNarrative(msg.text, msg.is_streaming ?? false);
+          // §5-2-5 narrative scope: optional fields (default "all"). Whisper
+          // narratives addressed to a different player are dropped client-side.
+          const narrativeScope = (msg.scope ?? "all") as ChatScope;
+          const narrativeTo = msg.to_player_id ?? null;
+          if (
+            narrativeScope === "whisper" &&
+            narrativeTo &&
+            narrativeTo !== myPlayerId
+          ) {
+            break;
+          }
+          updateLastNarrative(msg.text, msg.is_streaming ?? false, {
+            scope: narrativeScope,
+            toPlayerId: narrativeTo,
+          });
           break;
         }
         case "event": {
@@ -372,7 +387,17 @@ export default function Room() {
         }
         setAuth(playerId, playerToken);
 
-        const wsUrl = `ws://${window.location.host}/room/${roomId}`;
+        // §12-3 e2e: tests inject a mock WS server URL via either a build-time
+        // VITE_WS_URL env var or a runtime override on window so MockWSServer
+        // can pick a dynamic port per test. In production both are unset and
+        // we fall back to the page origin.
+        const runtimeOverride =
+          (window as unknown as { __VITE_WS_URL__?: string }).__VITE_WS_URL__;
+        const wsBase =
+          runtimeOverride ??
+          import.meta.env.VITE_WS_URL ??
+          `ws://${window.location.host}`;
+        const wsUrl = `${wsBase}/room/${roomId}`;
         const ws = new TacexWebSocket(wsUrl, handleMessage, (status) => {
           // Once SESSION_LOST is set, stop overwriting it with transient
           // socket-level status updates so the lost-session screen stays put.
@@ -409,7 +434,11 @@ export default function Room() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
-  usePhaseBgm(gameState?.phase, connectionStatus);
+  usePhaseBgm(
+    gameState?.phase,
+    connectionStatus,
+    gameState?.assessment_result?.outcome ?? null,
+  );
   useTurnStartSe(gameState, myPlayerId);
 
   const online = useOnlineStatus();
@@ -452,16 +481,23 @@ export default function Room() {
   }, [gameState, myPlayerId, sendTurnAction]);
 
   const handleSendStatement = useCallback(
-    (text: string) => {
+    (text: string, scope: ChatScope = "all", toPlayerId?: string | null) => {
       if (!gameState || !myPlayerId) return;
+      const effectiveTo = scope === "whisper" ? (toPlayerId ?? null) : null;
       sendWs({
         action: "player_statement",
         player_id: myPlayerId,
         room_id: gameState.room_id,
         client_request_id: nanoid(),
         text,
+        scope,
+        to_player_id: effectiveTo,
       });
-      addEntry("player_statement", text);
+      addEntry("player_statement", text, undefined, undefined, {
+        scope,
+        toPlayerId: effectiveTo,
+        fromPlayerId: myPlayerId,
+      });
     },
     [gameState, myPlayerId, sendWs, addEntry],
   );
@@ -650,7 +686,10 @@ export default function Room() {
           <QuickActionBar onEndTurn={handleEndTurn} />
         </main>
 
-        <ChatPanel onSendStatement={handleSendStatement} />
+        <ChatPanel
+          onSendStatement={handleSendStatement}
+          myPlayerId={myPlayerId}
+        />
       </div>
 
       <ContextMenu

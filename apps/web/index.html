@@ -6,7 +6,14 @@
     <title>タクティカル祓魔師TRPG</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- §18 FCP seed: paints before the JS bundle parses so Lighthouse's
+           headless Chrome reliably records a First Contentful Paint. React's
+           createRoot() replaces this subtree on mount. -->
+      <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#1f2937;">
+        <h1 style="font-size:1.5rem;font-weight:bold;">タクティカル祓魔師TRPG</h1>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

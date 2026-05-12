@@ -37,6 +37,18 @@ export default defineConfig({
     // Other React-flavoured deps (react/jsx-runtime, react-i18next, framer
     // -motion) are deliberately kept in the main chunk to avoid module-graph
     // ordering pitfalls that surfaced as a NO_FCP under Lighthouse CI.
+    modulePreload: {
+      // Vite preloads dynamic-chunk deps in the HTML by default so they can
+      // race with the entry. For the lobby route that's a regression: the
+      // konva chunk is unused on `/` and blocking it on the critical path is
+      // what produces Lighthouse's NO_FCP. Filter konva out of the *HTML*
+      // preload only — the runtime __vitePreload helper still fetches it
+      // together with the lazy Room chunk when the user enters a room.
+      resolveDependencies(_filename, deps, { hostType }) {
+        if (hostType !== "html") return deps;
+        return deps.filter((d) => !d.includes("konva"));
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {

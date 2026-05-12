@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { nanoid } from "nanoid";
@@ -32,7 +32,17 @@ import { actionForError, messageForError } from "../utils";
 import { Header, SideMenu } from "../components/layout";
 import { ToastContainer, AiThinkingIndicator } from "../components/common";
 import { ChatPanel } from "../components/chat";
-import { GameMap, ContextMenu } from "../components/map";
+// GameMap / ContextMenu pull in Konva (~93 KB gzip). Lazy-loading them keeps
+// Konva out of Room's static dep graph, so the lobby paint (and Lighthouse
+// FCP) is not blocked on it. Room itself stays synchronous so its useEffect
+// (WS connect, join_room) runs at the same mount tick as before — the e2e
+// fixtures depend on that timing.
+const GameMap = lazy(() =>
+  import("../components/map/GameMap").then((m) => ({ default: m.default })),
+);
+const ContextMenu = lazy(() =>
+  import("../components/map/ContextMenu").then((m) => ({ default: m.default })),
+);
 import { QuickActionBar, ActionDetailModal } from "../components/action";
 import {
   EvasionDialog,
@@ -682,7 +692,9 @@ export default function Room() {
           className="relative flex flex-col flex-1 overflow-hidden focus:outline-none"
         >
           <AiThinkingIndicator />
-          <GameMap onCharRightClick={handleCharRightClick} />
+          <Suspense fallback={null}>
+            <GameMap onCharRightClick={handleCharRightClick} />
+          </Suspense>
           <QuickActionBar onEndTurn={handleEndTurn} />
         </main>
 
@@ -692,11 +704,13 @@ export default function Room() {
         />
       </div>
 
-      <ContextMenu
-        onAttack={handleAttack}
-        onDetailAttack={handleDetailAttack}
-        onCastArt={handleOpenCastArt}
-      />
+      <Suspense fallback={null}>
+        <ContextMenu
+          onAttack={handleAttack}
+          onDetailAttack={handleDetailAttack}
+          onCastArt={handleOpenCastArt}
+        />
+      </Suspense>
       <ActionDetailModal onSubmit={handleDetailAttackSubmit} />
       <CastArtModal onSubmit={handleSubmitCastArt} />
       <CastArtCutscene />

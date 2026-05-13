@@ -28,6 +28,10 @@ export default defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
       },
+      "/room": {
+        target: "ws://localhost:8000",
+        ws: true,
+      },
     },
   },
   build: {

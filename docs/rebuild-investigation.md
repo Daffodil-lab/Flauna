@@ -315,6 +315,10 @@ export interface TRPGSystem {
 | 行 278 | Room.tsx「~270+ 行 useEffect」 | **741 行 / useEffect は 2 個** | フロント再設計対象の記述として誤解を招く |
 | 行 37 | persistence は「room/player shell のみ保存、GameState は scenario から再構築」 | `state_snapshots` テーブルも存在し snapshot 保存あり | 永続化置換コスト見積りに影響 |
 | 行 119 | 「Zustand 6 ストア」 | 実装は **v4** (推奨ターゲットとしてなら明示すべき) | 軽微だがバージョン精度の問題 |
+| 行 126 | ライセンス「別途決定要」 | **`LICENSE` は既に MIT で確定済** (Copyright (c) 2026 Daffodil) | Section 2 Open Q1 と矛盾。Section 8 で MIT を再確定 |
+| 行 124, 141 | 「Docker Compose 一発配備可」 | **`apps/gm/docker-compose.yml` はあるが `Dockerfile` 自体は存在しない** ← `build: .` 不能 | 一発配備は実装上不可。Section 8 で M0 必須化 |
+| 行 265, Open Q3 | i18n「多言語対応 (基盤活用可能)」「ターゲット地域未定」 | **`apps/web/src/i18n/` は ja.ts/en.ts のみ、`SUPPORTED_LANGUAGES = ["ja","en"]` で確定済** | 仕様と実装の二重状態。Section 8 で ja のみへ収束 |
+| 行 341 (gate 例示のみ) | 「M0 で 60 FPS / 100 token」のみ例示 | **`apps/web/e2e/perf.spec.ts` に WS≤2s / msg→DOM≤200ms / idle heap≤80MB が実装済。`.github/workflows/web.yml` に Lighthouse CI + bundle ≤800KB gzip も実装済** | gate 議論より先に perf budget が既に存在 |
 
 ---
 
@@ -322,13 +326,13 @@ export interface TRPGSystem {
 
 実装着手前に確定が必要な項目:
 
-1. **ライセンス確定** — AGPL-3.0 (SaaS 模倣抑制) か MIT (普及優先) か。コミュニティ規模・収益計画と連動 (本文 行 126 で「別途決定要」と先送り中)
-2. **データ移行方針** — 既存 SQLite データ (rooms/players/state_snapshots) を新スタックへ運ぶか、捨てるか。既存ユーザーの有無調査が前提
-3. **ターゲット地域** — 日本国内 TRPG コミュニティ first か、グローバル first か。i18n 投資配分が変わる
-4. **AI モード切替の UI 設計** — モード A (代行) / B (補助) をルーム作成時に固定するか、進行中に切替可能にするか
-5. **Colyseus と Yjs の責務分割** — Schema (権威データ) vs CRDT (高頻度 op) の境界線を一覧化する必要あり
-6. **デモルームの BYOK fallback** — 「サンプルキー (rate-limit 付)」の運用主体・予算上限・abuse 対応
-7. **撤退/方針転換 gate** — M0/M1 完了時点で「リビルド継続/中止/方針転換」を判定する基準
+1. **ライセンス確定** — AGPL-3.0 (SaaS 模倣抑制) か MIT (普及優先) か。コミュニティ規模・収益計画と連動 (本文 行 126 で「別途決定要」と先送り中) → **確定: MIT (実装維持)** — Section 8 参照
+2. **データ移行方針** — 既存 SQLite データ (rooms/players/state_snapshots) を新スタックへ運ぶか、捨てるか。既存ユーザーの有無調査が前提 → **確定: 捨てる (ゼロから新規)** — Section 8/9 参照
+3. **ターゲット地域** — 日本国内 TRPG コミュニティ first か、グローバル first か。i18n 投資配分が変わる → **確定: ja のみ (en サポート撤去)** — Section 8 参照
+4. **AI モード切替の UI 設計** — モード A (代行) / B (補助) をルーム作成時に固定するか、進行中に切替可能にするか → **確定: 進行中に自由切替** — Section 8 参照
+5. **Colyseus と Yjs の責務分割** — Schema (権威データ) vs CRDT (高頻度 op) の境界線を一覧化する必要あり → **確定: Yjs 主体 (Y.Doc が SSoT、Colyseus は matchmaking/プレゼンスのみ)** — Section 8 参照 ⚠️ 本文 行 113-148 の採用アーキテクチャを実質書き換え
+6. **デモルームの BYOK fallback** — 「サンプルキー (rate-limit 付)」の運用主体・予算上限・abuse 対応 → **確定: Ollama (local) デモのみ** — Section 8 参照
+7. **撤退/方針転換 gate** — M0/M1 完了時点で「リビルド継続/中止/方針転換」を判定する基準 → **確定: 設けない (PoC として完走)** — Section 8 参照
 
 ---
 
@@ -384,3 +388,100 @@ export interface TRPGSystem {
 | **Low** | 3 | バージョニング、A11y、ブラウザ最低ライン |
 
 実装着手前に最低でも **High の 8 項目**、可能なら **Med の 11 項目** を本文に反映するか、別文書 (`docs/rebuild-decisions.md` 等) に切り出して確定させることを推奨する。
+
+---
+
+## 8. 確定意思決定 (本セッション)
+
+Section 2 で挙げた 7 件の Open Questions、および本セッションで追加発覚した論点 1 件を、リビルド着手前に確定した。本文 (行 1-283) の元記述は意思決定履歴として残し、本章を最新の確定情報とする。本文と本章が矛盾する場合は **本章を正** とする。
+
+### 8.1 確定一覧
+
+| # | 項目 | 確定内容 | 本文への影響 |
+|---|---|---|---|
+| 1 | ライセンス | **MIT** (実装維持) | 行 126 「別途決定要」を上書き。リスク表 行 238 「AGPL vs MIT の宗教論」は不要 |
+| 2 | ターゲット地域・言語 | **ja のみ** (en サポート撤去) | 行 265 「多言語対応」と Open Q3 を上書き。`apps/web/src/i18n/en.ts` および `SUPPORTED_LANGUAGES` から "en" を削除する想定 |
+| 3 | AI モード切替 UI | **進行中に自由切替** | 行 172-187 の AI モード章に追記。詳細は 8.2 参照 |
+| 4 | 撤退/方針転換 gate | **設けない (PoC として完走)** | 行 341 を上書き。詳細は 8.3 参照 |
+| 5 | データ移行 | **捨てる (ゼロから新規)** | Open Q2 を上書き。行 196-210 の「再利用マッピング」は "概念のみ参照" として再解釈 (Section 9 参照) |
+| 6 | Colyseus/Yjs 責務分割 | **Yjs 主体** (Y.Doc が SSoT、Colyseus は matchmaking/プレゼンスのみ) | ⚠️ 行 118-120 の採用アーキテクチャ表、行 240 の「Yjs CRDT 併用 + サーバ throttle」緩和策を実質書き換え。詳細は 8.4 参照 |
+| 7 | デモルーム BYOK | **Ollama (local) デモのみ** | リスク表 行 237 「サンプルキー」案は不採用。詳細は 8.5 参照 |
+| + | Dockerfile 作成 | **M0 で必須** | 行 124, 141, マイルストーン M0 (行 218-219) に追記。詳細は 8.6 参照 |
+
+### 8.2 AI モード切替 UI (進行中切替) の含意
+
+- Colyseus Room の state machine に `mode: "ai_gm" | "human_gm"` フィールド追加
+- モード切替操作 (GM のトグルボタン or `/ai mode toggle` コマンド) を WS message として定義
+- 切替時の turn loop 引き継ぎ仕様 (代行中のターンを補助モードに渡すときの停止/再開) を M3 で確定
+- UI: ルームヘッダの toggle button + 現在モードのインジケータ
+
+### 8.3 gate なし (PoC 完走) の含意
+
+- M0-M5 を中止/方針転換なしで完走する
+- 既存 Web 実装の perf budget は引き継ぐ:
+  - `apps/web/e2e/perf.spec.ts`: WS 接続 ≤2000ms / msg→DOM ≤200ms / 60s idle heap growth ≤80MB
+  - `.github/workflows/web.yml`: Lighthouse CI + bundle ≤800KB gzip
+- 未達でも中止しない。数値は実装の手応えで都度判断する
+- 結果としてリリース時の品質は保証されない (PoC のため)
+
+### 8.4 Yjs 主体アーキテクチャの含意 (大規模変更)
+
+**変更前 (本文 行 118-120):** Colyseus Schema が権威データ、Yjs を「トークンドラッグなど高頻度 op に部分併用」
+
+**変更後 (本章で確定):**
+- **Y.Doc がルーム状態の SSoT** — character sheet / token 位置 / FoW / chat / dice log すべて
+- **Colyseus の役割は matchmaking / プレゼンス (誰がオンライン) / WebSocket 接続管理のみ**
+- 状態の永続化は Y.Doc snapshot を SQLite に保存
+- AI ターン処理 (モード A) は Y.Doc の transaction として記述
+- system pack の `combatRules` 等の engine は Y.Doc transaction 内で実行
+
+**影響範囲:**
+- 行 114-126「採用要素と理由」表の「状態同期」「バック」行は要全面書き換え
+- 行 196-210「既存 Flauna 資産の再利用マッピング」の「Colyseus Room に置換」記述も Y.Doc 主体に修正
+- 行 240「同期負荷」リスクは Yjs CRDT で根本解決され、「サーバ throttle」緩和策は不要
+- M0 (行 218) のスケルトンは Y.Doc-first で組む
+
+### 8.5 デモルーム = Ollama (local) のみ の含意
+
+- README とランディングページに「Ollama をローカルで起動して試す」手順を掲載
+- サーバ側のサンプルキー / rate-limit / 予算管理 / abuse 監視は **不要** (実装しない)
+- リスク表 行 237 の「サンプルキー (rate-limit 付)」案は不採用
+- セットアップ摩擦は残る (Ollama install + モデル DL) が、運営コスト・法務リスクは 0
+
+### 8.6 Dockerfile 作成 (M0 必須) の含意
+
+- 現状 `apps/gm/docker-compose.yml` のみ存在し `Dockerfile` が無いため、本文の「Docker Compose 一発配備」は実装上不可
+- 新スタックでは M0 で以下を整備:
+  - `apps/flauna/Dockerfile` (Node.js + production build)
+  - `apps/flauna/docker-compose.yml` (`systems/` を volume mount する設計)
+  - 第一者 system pack (tacex) を含む image build と、外部 pack を mount する image build の 2 系統
+- マイルストーン M0 の完了条件に「`docker compose up` で localhost:PORT が起動」を追加
+
+### 8.7 次回検討事項 (本セッションで先送り)
+
+以下は本セッションで意思決定保留。各マイルストーン着手前に別途決定が必要:
+
+- **CSP / セキュリティヘッダー設計** — M2 (BYOK) 着手前。BYOK の XSS リスク評価を含む
+- **Observability (ログ / metrics / tracing) 戦略** — M5 (公開) 着手前。セルフホストユーザーがデバッグできる最低限の設計
+- **Pack 間互換性・バージョニング規約** — M1 (System Pack API) 確定時。`TRPGSystem` interface の major version bump ポリシー、サードパーティ pack の動作保証範囲
+
+---
+
+## 9. プロジェクト原則 (大方針)
+
+本リビルドの全意思決定を貫く原則:
+
+> **これは新しいアプリケーションとして新規作成するプロジェクトである。**
+
+### 9.1 含意
+
+- **既存コードとの互換性を考慮しない** — Python 実装の API / WS message / DB schema / URL 構造を新スタックで踏襲する義務はない
+- **データ移行を行わない** — 既存 SQLite データ (rooms / players / state_snapshots / auth_tokens) は新スタックに持ち込まない (Section 8.1 #5)
+- **既存資産は「概念・仕様参照」のみ** — 行 196-210 の「再利用マッピング」表は LOC レベルの移植を意図したものではなく、ルール仕様・データモデル設計・UX フローの参考資料として扱う
+- **設計上の合理性を最優先** — 旧実装の制約 (例: Colyseus 中心 → Yjs 主体への転換、Section 8.4) に縛られない
+
+### 9.2 例外
+
+- `systems/tacex/` 配下の **TRPG ルール仕様** (`docs/tacex_*_spec_*.md`) は SSoT として継承
+- 既存 `apps/web/src/i18n/ja.ts` の翻訳文言は新スタックに移植可 (ja のみ、Section 8.1 #2)
+- 既存 perf budget の数値 (Section 8.3) は新スタックの目標として継承

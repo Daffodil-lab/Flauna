@@ -280,3 +280,107 @@ export interface TRPGSystem {
 - `docs/tacex_gm_spec_v2_5_FINAL.md` — tacex 仕様 SSoT
 - `docs/tacex_web_spec_v1_1_FINAL.md` — Web 仕様 SSoT
 - `docs/tacex_ws_schema_v1_0.md` — WS 通信契約仕様
+
+---
+
+## 外部レビュー / Open Questions
+
+本章は本ドキュメント (行 1-283) に対する追加レビューを蓄積する場である。本文の意思決定履歴を保持するため、本文の数値・記述は本章で訂正記録だけ残し、本文の修正は別 PR で行うことを推奨する。
+
+### 全体評価サマリ
+
+**強み**
+- 16 案 (A-P) の俯瞰 → ビジョン適合度ランキング → 採用案 (E+F+J+P/A) という絞り込みが論理的
+- 採用アーキテクチャを言語/同期/AI/永続化/デプロイ/認証/ライセンスの軸で表形式に整理
+- 既存資産再利用マッピング表が具体的で、捨てるもの・残すものの判断材料になる
+- マイルストーンに想定ブランチ名まで含めて実行可能性が高い
+- 競合 VTT 比較 → 差別化軸 4 点に勝ち筋を集約
+
+**弱み**
+- 一次資料 (LOC・メッセージ型数・Room.tsx 構造) の数値誤り 5 件
+- セキュリティ (BYOK 漏洩経路)・法務 (RAG 著作権)・パフォーマンス KPI が薄い
+- 工数の前提条件 (人数・スキル) が未定義のまま「N 週」と書かれている
+- 撤退条件・go/no-go gate が未定義 (戦略文書として致命的)
+
+---
+
+### 1. 事実訂正ログ
+
+本文の記述と実コードの乖離。本文の修正は別 PR で対応する想定。
+
+| 箇所 | 本文記載 | 実測 | 影響 |
+|---|---|---|---|
+| 行 34, 274 | `combat.py` 1,167 LOC | **372 LOC** (engine/ 全体の数字と混同した可能性) | tacex pack 移植工数の前提が変わる |
+| 行 276 | messages.py「Pydantic 14 + 5 メッセージ型」 | **Client 5 + Server 11 = 計 16 種** | WS 契約の規模感を過小・過剰に誤認する |
+| 行 278 | Room.tsx「~270+ 行 useEffect」 | **741 行 / useEffect は 2 個** | フロント再設計対象の記述として誤解を招く |
+| 行 37 | persistence は「room/player shell のみ保存、GameState は scenario から再構築」 | `state_snapshots` テーブルも存在し snapshot 保存あり | 永続化置換コスト見積りに影響 |
+| 行 119 | 「Zustand 6 ストア」 | 実装は **v4** (推奨ターゲットとしてなら明示すべき) | 軽微だがバージョン精度の問題 |
+
+---
+
+### 2. 未解決の意思決定 (Open Questions)
+
+実装着手前に確定が必要な項目:
+
+1. **ライセンス確定** — AGPL-3.0 (SaaS 模倣抑制) か MIT (普及優先) か。コミュニティ規模・収益計画と連動 (本文 行 126 で「別途決定要」と先送り中)
+2. **データ移行方針** — 既存 SQLite データ (rooms/players/state_snapshots) を新スタックへ運ぶか、捨てるか。既存ユーザーの有無調査が前提
+3. **ターゲット地域** — 日本国内 TRPG コミュニティ first か、グローバル first か。i18n 投資配分が変わる
+4. **AI モード切替の UI 設計** — モード A (代行) / B (補助) をルーム作成時に固定するか、進行中に切替可能にするか
+5. **Colyseus と Yjs の責務分割** — Schema (権威データ) vs CRDT (高頻度 op) の境界線を一覧化する必要あり
+6. **デモルームの BYOK fallback** — 「サンプルキー (rate-limit 付)」の運用主体・予算上限・abuse 対応
+7. **撤退/方針転換 gate** — M0/M1 完了時点で「リビルド継続/中止/方針転換」を判定する基準
+
+---
+
+### 3. 製品・戦略の詰め
+
+- **[High] 競合勝ち筋の根拠** — 「Roll20/Foundry が AI を積まない理由」を明示する。法務 (AI 出力責任)・技術 (レイテンシ)・ビジネス (課金モデル衝突) のどれが障壁か。「やらない」のか「やれない」のかで Flauna の優位性が変わる
+- **[High] ターゲットユーザー像の解像度** — 「GM/PL 双方」だけでなく、初心者 vs 熟練者、日本語/英語、デスクトップ/モバイル比率の想定が必要
+- **[High] 開発リソース確保策** — 完全無料を継続するための OpenCollective / GitHub Sponsors / 法人スポンサー / グラント戦略。1 人開発が止まったときの継続条件
+- **[Med] ローカリゼーション戦略** — 日本語 first か英語同時か。翻訳コミュニティの呼び込み方 (Crowdin / Weblate / 内製)
+- **[Med] 撤退条件 / go-no-go gate** — 各マイルストーン完了時の判定基準を数値で。例: M0 で PixiJS が 60 FPS / 100 token 描画、M1 で Colyseus が 8 人同期で ping ≤ 100ms
+
+---
+
+### 4. 技術・設計の詰め
+
+- **[High] 既存データ移行戦略** — SQLite → libSQL の schema diff、変換スクリプト、ロールバック計画。あるいは「捨てる」と明記
+- **[High] Colyseus/Yjs 責務分割** — 例: Character sheet (Colyseus 権威), Token 位置 (Yjs 協調編集), Chat (Colyseus 順序保証), FoW (どちら?), Dice roll log (どちら?)。一覧化が必要
+- **[High] BYOK セキュリティの具体化** — (a) IndexedDB の XSS リスク評価と CSP 設計、(b) サーバ proxy がキーをログに残さない保証 (audit log 構造)、(c) ローテーション/失効、(d) リクエスト後即破棄の検証方法
+- **[High] パフォーマンス目標数値化** — 同時接続 N 人 / トークン N 個 / ping ≤ N ms / 60 FPS を SLA として明示。マップサイズ上限・ファイルサイズ上限も
+- **[Med] 認証・認可詳細** — 匿名 URL + magic link の閾値設計 (ephemeral ルームは匿名、永続ルームは要登録)。GM/PL/Observer 権限モデル
+- **[Med] デモルーム abuse 対策** — IP/ルーム単位の token quota、prompt injection 監視、idle cleanup、デモキーの財務上限
+- **[Med] ブラウザサポート範囲** — Chrome/Firefox/Safari/Mobile Safari の最低バージョン明示。WebGL fallback の有無
+- **[Low] アクセシビリティ** — スクリーンリーダー対応、キーボード操作、色覚多様性 (高コントラストモード)
+
+---
+
+### 5. 運用・コミュニティの詰め
+
+- **[Med] ドキュメント整備の優先度** — README / API docs / pack 開発ガイド / チュートリアル / FAQ の着手順序とリリース連動
+- **[Med] コントリビューションガイド** — PR テンプレ、code style (ESLint/Prettier/TS strict 設定値)、新 system pack 承認フロー、CLA の要否
+- **[Med] リリースサイクル** — minor/patch 頻度、emergency hotfix プロセス、pre-release (beta) チャンネル
+- **[Med] System pack 作者向け DX** — `flauna pack init <name>` CLI、pack 検証ツール、レジストリ (npm? GitHub Topics?)、サンプルテンプレ、ローカルテスト環境
+- **[Low] バージョニング戦略** — semver か calendar versioning か。framework と pack の独立バージョニング規約
+
+---
+
+### 6. リスク・コストの詰め
+
+- **[High] 法務リスク** — TRPG ルール RAG の著作権 (D&D SRD 5.1 OGL / CoC / 祓魔師の正式許諾の有無)、AI 出力の著作権帰属、UGC ライセンス、GDPR / 個人情報保護法対応、ToS の整備
+- **[High] 工数前提の明文化** — 「N 週」が想定する人数 (1 人月? 2 人月?)、必要スキル (PixiJS / Colyseus / Vercel AI SDK 経験有無)、テスト・バグ修正バッファ
+- **[Med] スコープ膨張対策の強化** — M4 (汎用 VTT 機能) で実装する VTT primitive のリスト化 (FoW / グリッド / 計測 / ハンドアウト / ダイスログ / マクロ / ライト / 壁 のうちどれを必須/将来)
+- **[Med] OSS コミュニティとの関係性** — Foundry / Mythic Table フォークではなく独自路線という宣言。Foundry プラグイン互換性を提供するか否か
+- **[Med] AI provider fallback** — Anthropic / OpenAI 同時障害時、Ollama (local) で最低限の対話継続可能性。Provider 切替の UX
+
+---
+
+### 7. 優先度サマリー
+
+| 優先度 | 件数 | 主要項目 |
+|---|---|---|
+| **High** | 8 | 競合勝ち筋、ターゲット像、開発リソース、データ移行、Colyseus/Yjs 責務、BYOK セキュリティ、KPI 数値化、法務、工数前提 |
+| **Med** | 11 | ローカリゼーション、撤退 gate、認証認可、abuse 対策、ブラウザ、ドキュメント、CGuide、リリース、pack DX、スコープ gate、OSS 関係、AI fallback |
+| **Low** | 3 | バージョニング、A11y、ブラウザ最低ライン |
+
+実装着手前に最低でも **High の 8 項目**、可能なら **Med の 11 項目** を本文に反映するか、別文書 (`docs/rebuild-decisions.md` 等) に切り出して確定させることを推奨する。
